@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class QueryParser {
+public class QueryProcessor {
     public List<String> getTokens(String filename, Tokenizer tokenizer) {
         BufferedReader br = new BufferedReader(
                 new InputStreamReader(
                         Objects.requireNonNull(
-                                QueryParser.class.getClassLoader().getResourceAsStream(filename))));
+                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
         String line;
         List<String> tokens = new ArrayList<>();
 
