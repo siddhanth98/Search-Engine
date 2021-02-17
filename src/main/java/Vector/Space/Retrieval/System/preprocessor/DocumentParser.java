@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static Vector.Space.Retrieval.System.DocumentUtils.constructDocumentName;
+
 public class DocumentParser {
     public List<String> parseAndRetrieveText(String directory, String fileNamePrefix) {
         List<String> result = new ArrayList<>();
@@ -16,7 +18,7 @@ public class DocumentParser {
                 BufferedReader document = new BufferedReader(
                         new InputStreamReader(
                                 Objects.requireNonNull(
-                                        Tokenizer.class.getClassLoader()
+                                        DocumentParser.class.getClassLoader()
                                                 .getResourceAsStream(
                                                         String.format("%s/%s%s", directory, fileNamePrefix,
                                                                 constructDocumentName(documentIndex++))
@@ -33,6 +35,20 @@ public class DocumentParser {
             }
         }
         return result;
+    }
+
+    public List<String> parseAndRetrieveText(int documentIndex, String directory, String fileNamePrefix)
+            throws IOException {
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(
+                        Objects.requireNonNull(
+                                DocumentParser.class.getClassLoader().getResourceAsStream(String.format("%s/%s%s", directory, fileNamePrefix,
+                                        constructDocumentName(documentIndex))
+                                )
+                        )
+                )
+        );
+        return parseDocument(br);
     }
 
     private List<String> parseDocument(BufferedReader br) throws IOException {
@@ -59,12 +75,5 @@ public class DocumentParser {
             line = br.readLine();
         }
         return textLines;
-    }
-
-    private String constructDocumentName(int documentIndex) {
-        if (documentIndex < 10) return String.format("000%d", documentIndex);
-        if (documentIndex < 100) return String.format("00%d", documentIndex);
-        if (documentIndex < 1000) return String.format("0%d", documentIndex);
-        return String.valueOf(documentIndex);
     }
 }

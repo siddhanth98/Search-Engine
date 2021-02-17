@@ -1,10 +1,10 @@
 package Vector.Space.Retrieval.System;
 
+import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static Vector.Space.Retrieval.System.Constants.*;
 
@@ -14,7 +14,13 @@ import static Vector.Space.Retrieval.System.Constants.*;
  */
 public class App {
     public static void main(String[] args) {
+        InvertedIndexer indexer = new InvertedIndexer(collectionDirectoryName, collectionSize, fileNamePrefix);
+        StopWordProcessor stopWordProcessor = new StopWordProcessor(stopWordsFileName);
+        Tokenizer tokenizer = new Tokenizer(stem, eliminateStopWords, stopWordProcessor);
 
+        indexer.constructInvertedIndex(tokenizer);
+        System.out.println(indexer.toString());
+        indexer.printDocumentVector();
     }
 
     public static int getMinimumNumberOfUniqueWords(final List<String> rankedListOfTokens,

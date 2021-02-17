@@ -16,6 +16,7 @@ public class Constants {
     static String collectionDirectoryName = config.getString("conf.CollectionDirectory");
     static String fileNamePrefix = config.getString("conf.FileNamePrefix");
     static String stopWordsFileName = config.getString("conf.StopWordsFileName");
+    static int collectionSize = config.getInt("conf.CollectionSize");
     static boolean stem = config.getBoolean("conf.Stem");
     static boolean eliminateStopWords = config.getBoolean("conf.StopWordsElimination");
 }
