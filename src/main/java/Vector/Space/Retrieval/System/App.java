@@ -3,6 +3,7 @@ package Vector.Space.Retrieval.System;
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +18,21 @@ public class App {
         InvertedIndexer indexer = new InvertedIndexer(collectionDirectoryName, collectionSize, fileNamePrefix);
         StopWordProcessor stopWordProcessor = new StopWordProcessor(stopWordsFileName);
         Tokenizer tokenizer = new Tokenizer(stem, eliminateStopWords, stopWordProcessor);
+        List<List<String>> queriesTokens = QueryProcessor.parseQueriesAndGetTokens(queriesFileName, tokenizer);
+        List<String> queries = QueryProcessor.parseAndGetQueries(queriesFileName);
 
         indexer.constructInvertedIndex(tokenizer);
-        System.out.println(indexer.toString());
-        indexer.printDocumentVector();
+
+        try {
+            for (int i = 0; i < queriesTokens.size(); i++) {
+                Map<String, Double> rankedMap = QueryProcessor.getRankedMapOfDocuments(indexer, indexer.getIndex(), queriesTokens.get(i), k);
+                System.out.printf("Query: %s%nRanked list of (documents, similarity) => %s%n%n", queries.get(i), rankedMap.toString());
+            }
+        }
+        catch(Exception e) {
+            System.out.println("exception while computing query-document similarities");
+            e.printStackTrace();
+        }
     }
 
     public static int getMinimumNumberOfUniqueWords(final List<String> rankedListOfTokens,

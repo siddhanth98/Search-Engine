@@ -55,7 +55,7 @@ public class InvertedIndexer {
     }
 
     public Map<String, Map<String, Integer>> getIndex() {
-        return index;
+        return this.index;
     }
 
     private void constructDocumentVectorTable() {
