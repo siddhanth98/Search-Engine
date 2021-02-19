@@ -17,6 +17,7 @@ public class Constants {
     static String fileNamePrefix = config.getString("conf.FileNamePrefix");
     static String stopWordsFileName = config.getString("conf.StopWordsFileName");
     static String queriesFileName = config.getString("conf.QueriesFileName");
+    static String relevanceFileName = config.getString("conf.RelevanceFileName");
 
     static int collectionSize = config.getInt("conf.CollectionSize");
 

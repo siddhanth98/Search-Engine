@@ -3,7 +3,7 @@ package Vector.Space.Retrieval.System;
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,32 +20,23 @@ public class App {
         Tokenizer tokenizer = new Tokenizer(stem, eliminateStopWords, stopWordProcessor);
         List<List<String>> queriesTokens = QueryProcessor.parseQueriesAndGetTokens(queriesFileName, tokenizer);
         List<String> queries = QueryProcessor.parseAndGetQueries(queriesFileName);
-
+        List<Map<String, Double>> rankedMapForAllQueries = new ArrayList<>();
         indexer.constructInvertedIndex(tokenizer);
 
         try {
             for (int i = 0; i < queriesTokens.size(); i++) {
                 Map<String, Double> rankedMap = QueryProcessor.getRankedMapOfDocuments(indexer, indexer.getIndex(), queriesTokens.get(i), k);
-                System.out.printf("Query: %s%nRanked list of (documents, similarity) => %s%n%n", queries.get(i), rankedMap.toString());
+                System.out.printf("Query%d: %s%n", i+1, queries.get(i));
+                for (String document : rankedMap.keySet()) System.out.printf("(Query%d, %s)%n", i+1, document);
+                System.out.println("\n");
+                rankedMapForAllQueries.add(rankedMap);
             }
         }
         catch(Exception e) {
             System.out.println("exception while computing query-document similarities");
             e.printStackTrace();
         }
-    }
-
-    public static int getMinimumNumberOfUniqueWords(final List<String> rankedListOfTokens,
-                                                    final Map<String, Integer> frequencyMap,
-                                                    final List<String> allTokens,
-                                                    double minPercentage) {
-        int minNumberOfWords = 0, totalNumberOfWords = allTokens.size(), totalWordCount = 0;
-
-        for (String rankedListOfToken : rankedListOfTokens) {
-            minNumberOfWords++;
-            totalWordCount += frequencyMap.get(rankedListOfToken);
-            if (totalWordCount >= (minPercentage * totalNumberOfWords)) break;
-        }
-        return minNumberOfWords;
+        System.out.printf("Average precision = %f%%%n", 100*QueryProcessor.getAveragePrecision(rankedMapForAllQueries, relevanceFileName));
+        System.out.printf("Average Recall = %f%%%n", 100*QueryProcessor.getAverageRecall(rankedMapForAllQueries, relevanceFileName));
     }
 }
