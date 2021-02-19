@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
 import static Vector.Space.Retrieval.System.DocumentUtils.constructDocumentName;
 
 /**
- * Siddhanth Venkateshwaran - This class will build and store the inverted index for the cranfield collection
+ * This class will build and store the inverted index for the cranfield collection
+ * @author Siddhanth Venkateshwaran
  */
 public class InvertedIndexer {
     private final String directory;

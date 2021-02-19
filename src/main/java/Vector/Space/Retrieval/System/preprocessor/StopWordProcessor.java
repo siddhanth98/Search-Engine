@@ -8,8 +8,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Name - Siddhanth Venkateshwaran
  * Class to handle occurrences of stop-words
+ * @author Siddhanth Venkateshwaran
  */
 public class StopWordProcessor {
 

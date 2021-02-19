@@ -4,8 +4,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 /**
- * Name - Siddhanth Venkateshwaran
  * This class will hold all configuration variables needed in the other programs
+ * @author Siddhanth Venkateshwaran
  */
 public class Constants {
 

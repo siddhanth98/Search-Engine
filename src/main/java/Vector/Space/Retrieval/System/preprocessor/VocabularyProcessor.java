@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Name - Siddhanth Venkateshwaran
  * Class to process vocabulary of a document collection
+ * @author Siddhanth Venkateshwaran
  */
 public class VocabularyProcessor {
 

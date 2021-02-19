@@ -10,8 +10,10 @@ import java.util.stream.Collectors;
 import Vector.Space.Retrieval.System.DocumentUtils;
 
 /**
- * Siddhanth Venkateshwaran - This class will parse and tokenize the queries using the given tokenizer instance,
- * compute similarity between a query and a document and compute the average precision and recall of all retrieved documents
+ * This class will parse and tokenize the queries using the given tokenizer instance,
+ * compute similarity between a query and a document and compute the average precision and
+ * recall of all retrieved documents
+ * @author Siddhanth Venkateshwaran
  */
 public class QueryProcessor {
 

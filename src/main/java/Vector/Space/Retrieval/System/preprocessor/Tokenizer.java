@@ -5,9 +5,9 @@ import java.util.stream.Collectors;
 import Vector.Space.Retrieval.System.stemmer.Porter;
 
 /**
- * Name - Siddhanth Venkateshwaran
  * This class is responsible for tokenizing the input string by splitting on whitespace
  * and removing punctuations
+ * @author Siddhanth Venkateshwaran
  */
 public class Tokenizer {
     private final Porter stemmer;

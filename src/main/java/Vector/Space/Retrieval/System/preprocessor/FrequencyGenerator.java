@@ -3,8 +3,8 @@ package Vector.Space.Retrieval.System.preprocessor;
 import java.util.*;
 
 /**
- * Name - Siddhanth Venkateshwaran
  * Class to count the number of occurrences of each word in the collection
+ * @author Siddhanth Venkateshwaran
  */
 public class FrequencyGenerator {
 

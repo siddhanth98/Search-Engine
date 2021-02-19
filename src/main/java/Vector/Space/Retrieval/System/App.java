@@ -10,8 +10,8 @@ import java.util.Map;
 import static Vector.Space.Retrieval.System.Constants.*;
 
 /**
- * Name - Siddhanth Venkateshwaran
  * This is the main class to run
+ * @author Siddhanth Venkateshwaran
  */
 public class App {
     public static void main(String[] args) {
