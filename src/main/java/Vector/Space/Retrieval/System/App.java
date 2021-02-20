@@ -28,6 +28,9 @@ public class App {
                 Map<String, Double> rankedMap = QueryProcessor.getRankedMapOfDocuments(indexer, indexer.getIndex(), queriesTokens.get(i), k);
                 System.out.printf("Query%d: %s%n", i+1, queries.get(i));
                 for (String document : rankedMap.keySet()) System.out.printf("(Query%d, %s)%n", i+1, document);
+                System.out.printf("Precision = %f%%, Recall = %f%%%n",
+                        100*QueryProcessor.getPrecision(rankedMap.keySet(), i+1, relevanceFileName),
+                        100*QueryProcessor.getRecall(rankedMap.keySet(), i+1, relevanceFileName));
                 System.out.println("\n");
                 rankedMapForAllQueries.add(rankedMap);
             }
