@@ -15,11 +15,11 @@ import static Vector.Space.Retrieval.System.DocumentUtils.constructDocumentName;
 public class DocumentParser {
 
     /**
-     * This method will parse the entire collection and create a global list of all tokens
+     * This method will parse the entire collection and create a global list of all valid lines of text
      * found in all documents in the collection
      * @param directory name of the directory having the collection
      * @param fileNamePrefix prefix of the document name common to all documents
-     * @return global list of all tokens found in the collection
+     * @return global list of all valid lines of text found in the collection
      */
     public List<String> parseAndRetrieveText(String directory, String fileNamePrefix) {
         List<String> result = new ArrayList<>();
@@ -49,11 +49,11 @@ public class DocumentParser {
     }
 
     /**
-     * This method will parse and tokenize the text for a given document
+     * This method will parse and retrieve valid text from a given document
      * @param documentIndex ID of the current document being processed
      * @param directory name of the directory having the collection
      * @param fileNamePrefix common prefix of all document names
-     * @return list of all tokens found in the current document
+     * @return list of all valid lines of text found in the current document
      */
     public List<String> parseAndRetrieveText(int documentIndex, String directory, String fileNamePrefix)
             throws IOException {
