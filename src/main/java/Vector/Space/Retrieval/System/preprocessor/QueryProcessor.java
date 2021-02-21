@@ -96,7 +96,7 @@ public class QueryProcessor {
                     });
                 }
         );
-        return getRankedMap(similarityMap, k);
+        return getRankedMap(similarityMap);
     }
 
     /**
@@ -105,7 +105,7 @@ public class QueryProcessor {
      * @param k number of documents to be retrieved
      * @return ordered map of document -> similarity value
      */
-    private static Map<String, Double> getRankedMap(Map<String, Double> queryDocumentSimilarityMap, int k) {
+    private static Map<String, Double> getRankedMap(Map<String, Double> queryDocumentSimilarityMap) {
         List<String> rankedList = new ArrayList<>();
         Map<String, Double> retrievedDocumentSimilarityMap = new LinkedHashMap<>();
 
@@ -113,7 +113,7 @@ public class QueryProcessor {
                 .stream()
                 .sorted((e1, e2) -> -1 * Double.compare(e1.getValue(), e2.getValue()))
                 .forEach(e -> rankedList.add(e.getKey()));
-        rankedList.subList(0, k).forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
+        rankedList.forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
         return retrievedDocumentSimilarityMap;
     }
 
@@ -147,10 +147,10 @@ public class QueryProcessor {
      * @param relevanceFileName name of the top-level file having manual relevance judgements
      * @return average precision computed over all queries
      */
-    public static double getAveragePrecision(List<Map<String, Double>> globalRankedList, String relevanceFileName) {
+    public static double getAveragePrecision(List<Map<String, Double>> globalRankedList, String relevanceFileName, int k) {
         double averagePrecision = 0.0D;
         for (int i = 0; i < globalRankedList.size(); i++)
-            averagePrecision += getPrecision(globalRankedList.get(i).keySet(), i+1, relevanceFileName);
+            averagePrecision += getPrecision(getTopKDocuments(globalRankedList.get(i).keySet(), k), i+1, relevanceFileName);
         return averagePrecision / globalRankedList.size();
     }
 
@@ -160,11 +160,29 @@ public class QueryProcessor {
      * @param relevanceFileName name of the top-level file having manual relevance judgements
      * @return average recall computed over all queries
      */
-    public static double getAverageRecall(List<Map<String, Double>> globalRankedList, String relevanceFileName) {
+    public static double getAverageRecall(List<Map<String, Double>> globalRankedList, String relevanceFileName, int k) {
         double averageRecall = 0.0D;
         for (int i = 0; i < globalRankedList.size(); i++)
-            averageRecall += getRecall(globalRankedList.get(i).keySet(), i+1, relevanceFileName);
+            averageRecall += getRecall(getTopKDocuments(globalRankedList.get(i).keySet(), k), i+1, relevanceFileName);
         return averageRecall / globalRankedList.size();
+    }
+
+    /**
+     * Extracts the top k documents from the ranked list retrieved for the given query
+     * @param documents The ranked list of documents in the form of a set
+     * @param k number of documents to retrieve
+     * @return set of top k documents by cosine similarity
+     */
+    public static Set<String> getTopKDocuments(Set<String> documents, int k) {
+        Set<String> topKDocuments = new HashSet<>();
+        int count = 0;
+
+        for (String document : documents) {
+            if (count == k) break;
+            topKDocuments.add(document);
+            count++;
+        }
+        return topKDocuments;
     }
 
     /**
