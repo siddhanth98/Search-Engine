@@ -2,6 +2,7 @@ package Vector.Space.Retrieval.System;
 
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
+import Vector.Space.Retrieval.System.query.QueryProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +28,8 @@ public class App {
         try {
             for (int i = 0; i < queriesTokens.size(); i++) {
                 Map<String, Double> rankedMap = QueryProcessor.getRankedMapOfDocuments(indexer, indexer.getIndex(), queriesTokens.get(i), k);
-                List<String> rankedList = new ArrayList<>();
                 System.out.printf("Query%d: %s%n", i+1, queries.get(i));
-                for (String document : rankedMap.keySet()) rankedList.add(String.format("(Query%d, %s)", i+1, document));
+                List<String> rankedList = new ArrayList<>(rankedMap.keySet());
                 System.out.println("[".concat(String.join(", ", rankedList)).concat("]"));
                 System.out.printf("Precision = %f%%, Recall = %f%%%n",
                         100*QueryProcessor.getPrecision(rankedMap.keySet(), i+1, relevanceFileName),

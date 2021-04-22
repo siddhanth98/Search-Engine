@@ -1,4 +1,4 @@
-package Vector.Space.Retrieval.System.preprocessor;
+package Vector.Space.Retrieval.System.query;
 
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 
@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import Vector.Space.Retrieval.System.DocumentUtils;
+import Vector.Space.Retrieval.System.preprocessor.Tokenizer;
 
 /**
  * This class will parse and tokenize the queries using the given tokenizer instance,
@@ -65,6 +66,10 @@ public class QueryProcessor {
         return tokens.stream().map(tokenizer::preprocessTokens).collect(Collectors.toList());
     }
 
+    public static List<String> getTokens(String query, Tokenizer tokenizer) {
+        return tokenizer.preprocessTokens(tokenizer.tokenize(query));
+    }
+
     /**
      * Computes the similarity of a query with all documents in the collection that have at least 1 token appearing in the query
      * @param indexer Instance of inverted indexer
@@ -84,7 +89,8 @@ public class QueryProcessor {
                         try {
                             double currentSimilarityValue =
                                     indexer.getWeight(currentToken, currentDocument) *
-                                            getWeight(queryTermFrequencyMap.get(currentToken), indexer.getInverseDocumentFrequency(currentToken));
+                                            getWeight(queryTermFrequencyMap.get(currentToken),
+                                                    indexer.getInverseDocumentFrequency(currentToken));
 
                             if (!similarityMap.containsKey(currentDocument))
                                 similarityMap.put(currentDocument, currentSimilarityValue);
@@ -102,8 +108,7 @@ public class QueryProcessor {
     /**
      * Computes the reverse-sorted map of retrieved documents in terms of similarity values
      * @param queryDocumentSimilarityMap Unordered Map of document -> similarity values
-     * @param k number of documents to be retrieved
-     * @return ordered map of document -> similarity value
+     * @return map of document -> similarity value (ordered in non-increasing order of cosine similarity value)
      */
     private static Map<String, Double> getRankedMap(Map<String, Double> queryDocumentSimilarityMap) {
         List<String> rankedList = new ArrayList<>();
@@ -135,8 +140,8 @@ public class QueryProcessor {
     private static Map<String, Integer> getTermFrequencyMap(List<String> tokens) {
         Map<String, Integer> termFrequencyMap = new HashMap<>();
         tokens.forEach(token -> {
-            if (termFrequencyMap.containsKey(token)) termFrequencyMap.put(token, termFrequencyMap.get(token)+1);
-            else termFrequencyMap.put(token, 1);
+            if (!termFrequencyMap.containsKey(token)) termFrequencyMap.put(token, 0);
+            termFrequencyMap.put(token, termFrequencyMap.get(token)+1);
         });
         return termFrequencyMap;
     }
