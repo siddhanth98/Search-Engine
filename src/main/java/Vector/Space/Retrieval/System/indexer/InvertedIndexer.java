@@ -29,6 +29,10 @@ public class InvertedIndexer {
         index = new HashMap<>();
     }
 
+    public void addToIndex(List<String> tokens) {
+
+    }
+
     /**
      * Constructs the inverted index for the collection using the given tokenizer instance
      * @param tokenizer Tokenizer instance which will be used to tokenize the text from the documents
@@ -75,7 +79,7 @@ public class InvertedIndexer {
     }
 
     /**
-     * This function will build the map of documentID -> euclidean normalized length of document vector
+     * This function will build the map of documentID -> euclidean normalized length of document vector <br>
      * This map is used while computing the similarity between a document and a query
      */
     private void constructDocumentVectorTable() {

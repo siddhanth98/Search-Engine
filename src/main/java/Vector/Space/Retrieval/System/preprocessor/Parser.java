@@ -54,8 +54,8 @@ public class Parser {
         else if (node.tagName().equals("a")) processHyperLink(node);
         else if (!headerTags.contains(node.tagName())) {
             /* Process the node's text here */
-            String text = node.ownText();
-            if (text.length() > 0) this.tokens.addAll(tokenizer.tokenize(text));
+            String text = node.ownText().strip();
+            if (text.length() > 0) this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(text)));
             for (Element child : node.children()) processNode(child);
         }
     }
@@ -116,7 +116,7 @@ public class Parser {
                 case "keywords": {
                     String[] words = content.split(",\\s*");
                     System.out.printf("Meta keywords - %s%n%n", Arrays.toString(words));
-                    this.tokens.addAll(tokenizer.tokenize(content));
+                    this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(content)));
                     break;
                 }
             }
@@ -131,7 +131,7 @@ public class Parser {
         String link = node.attr("abs:href"); /* Get absolute link */
         String anchorText = node.ownText();
         System.out.printf("Link to - %s%nAnchor Text - %s%n%n", link, anchorText);
-        this.tokens.addAll(tokenizer.tokenize(anchorText));
+        this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(anchorText)));
         this.links.add(link);
     }
 
@@ -166,14 +166,14 @@ public class Parser {
     /**
      * Get indicator which indicates whether or not hyperlinks can be followed
      */
-    public boolean isFollow() {
+    public boolean canFollow() {
         return follow;
     }
 
     /**
      * Get indicator which indicates whether or not the document can be indexed
      */
-    public boolean isIndex() {
+    public boolean canIndex() {
         return index;
     }
 
