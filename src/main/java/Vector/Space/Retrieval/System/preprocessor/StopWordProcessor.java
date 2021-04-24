@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static Vector.Space.Retrieval.System.Constants.*;
+
 /**
  * Class to handle occurrences of stop-words
  * @author Siddhanth Venkateshwaran
@@ -14,8 +16,8 @@ import java.util.stream.Collectors;
 public class StopWordProcessor {
 
     private final Set<String> stopWords;
-    public StopWordProcessor(String fileName) {
-        this.stopWords = getAllStopWords(fileName);
+    public StopWordProcessor() {
+        this.stopWords = getAllStopWords(stopWordsFileName);
     }
 
     /**

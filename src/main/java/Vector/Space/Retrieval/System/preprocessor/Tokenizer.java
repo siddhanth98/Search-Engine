@@ -2,6 +2,8 @@ package Vector.Space.Retrieval.System.preprocessor;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import Vector.Space.Retrieval.System.Constants;
 import Vector.Space.Retrieval.System.stemmer.Porter;
 
 /**
@@ -15,12 +17,11 @@ public class Tokenizer {
     private final boolean stem;
     private final boolean eliminateStopWords;
 
-    public Tokenizer(final boolean stem, final boolean eliminateStopWords,
-                     final StopWordProcessor stopWordProcessor) {
+    public Tokenizer() {
         stemmer = new Porter();
-        this.stem = stem;
-        this.eliminateStopWords = eliminateStopWords;
-        this.stopWordProcessor = stopWordProcessor;
+        this.stem = Constants.stem;
+        this.eliminateStopWords = Constants.eliminateStopWords;
+        this.stopWordProcessor = new StopWordProcessor();
     }
 
     /**
