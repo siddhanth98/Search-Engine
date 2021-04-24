@@ -35,9 +35,11 @@ public class Crawler {
 
             List<String> hyperlinks = parser.getLinks();
             if (parser.canFollow()) enqueueUrls(filter(hyperlinks));
-            if (parser.canIndex()) this.indexer.addToIndex(parser.getTokens());
+            if (parser.canIndex())
+                this.indexer.addToIndex(parser.getTokens(), url, parser.getTitle(), parser.getDescription());
 
-            for (String link : hyperlinks) crawl(link);
+            this.visitedUrls.add(url);
+            if (!this.urlFrontier.isEmpty()) crawl(this.dequeueUrl());
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -46,15 +48,18 @@ public class Crawler {
 
     /**
      * Filter out links by removing urls which are already crawled
-     * or are already enqueued in the url frontier
+     * or are already enqueued in the url frontier,
+     * and remove links if they do not belong to the <i>uic.edu</i> domain
      * @param links List of urls extracted from the document
      */
     public List<String> filter(List<String> links) {
         List<String> filteredLinks = new LinkedList<>();
         for (String link : links) {
-            String normalizedLink = removePageFragment(link);
-            if (!(enqueued.contains(normalizedLink) || visitedUrls.contains(normalizedLink)))
-                filteredLinks.add(normalizedLink);
+            if (link.contains("uic.edu")) {
+                String normalizedLink = normalize(link);
+                if (!(this.enqueued.contains(normalizedLink) || this.visitedUrls.contains(normalizedLink)))
+                    filteredLinks.add(normalizedLink);
+            }
         }
         return filteredLinks;
     }
@@ -63,28 +68,28 @@ public class Crawler {
      * Removes page fragment id (if it exists) and any trailing '/' from the url
      * @param url Url to normalize
      */
-    public String removePageFragment(String url) {
+    public String normalize(String url) {
         String absoluteUrl = url;
         try {
             if (Pattern.matches("^.*#.+$", url)) {
                 /* Url has a page fragment identifier */
                 int fragmentStartIndex = absoluteUrl.lastIndexOf("#");
                 absoluteUrl = absoluteUrl.substring(0, fragmentStartIndex);
-
-                int trailingSlashIndex = absoluteUrl.lastIndexOf("/");
-                if (trailingSlashIndex == absoluteUrl.length() - 1)
-                    absoluteUrl = absoluteUrl.substring(0, absoluteUrl.length() - 1);
             }
+            int trailingSlashIndex = absoluteUrl.lastIndexOf("/");
+            if (trailingSlashIndex == absoluteUrl.length() - 1) /* url ends with a '/' */
+                absoluteUrl = absoluteUrl.substring(0, absoluteUrl.length() - 1);
         }
         catch(Exception e) {
             e.printStackTrace();
         }
+
         return absoluteUrl;
     }
 
     /**
-     * Adds each extracted url to the url frontier and the set of enqueued urls
-     * @param urls List of urls extracted from document
+     * Adds each extracted hyperlink to the url frontier and the set of enqueued urls
+     * @param urls List of hyperlinks extracted from document
      */
     public void enqueueUrls(List<String> urls) {
         for (String url : urls) {

@@ -29,7 +29,15 @@ public class InvertedIndexer {
         index = new HashMap<>();
     }
 
-    public void addToIndex(List<String> tokens) {
+    /**
+     * Adds the document details to the inverted index for the relevant tokens <br>
+     * Adds these tokens and document details to the database in which the index resides
+     * @param tokens List of tokens for the document at the given url
+     * @param url Normalized url for of the document
+     * @param title Title of the document
+     * @param description Meta description of the document
+     */
+    public void addToIndex(List<String> tokens, String url, String title, String description) {
 
     }
 
