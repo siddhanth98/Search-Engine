@@ -1,8 +1,12 @@
 package Vector.Space.Retrieval.System.preprocessor;
 
+import ch.qos.logback.classic.util.ContextInitializer;
+
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -22,7 +26,10 @@ public class Parser {
     private final List<String> links;
     private boolean follow, index;
 
+    private static final Logger logger = LoggerFactory.getLogger(Parser.class);
+
     public Parser(final Document document) {
+        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/configuration/logback-test.xml");
         this.document = document;
         this.title = "";
         this.description = "";
@@ -37,7 +44,7 @@ public class Parser {
      */
     public void parse() {
         for (Element child : this.document.children()) processNode(child);
-        System.out.printf("Finishing parsing document at url %s%n", this.document.baseUri());
+        logger.info(String.format("Finished parsing document at url %s%n", this.document.baseUri()));
         displayTokens();
     }
 
@@ -72,12 +79,14 @@ public class Parser {
      * @param head Head element of the html page
      */
     public void processTitle(Element head) {
+        logger.info(String.format("processing head - %s%n", head.tagName()));
         Elements title = head.getElementsByTag("title");
         if (!title.isEmpty()) {
             /* Page title does exist */
-            System.out.printf("Found title - %s%n%n", title.get(0).ownText());
+            logger.info(String.format("Found title - %s%n%n", title.get(0).ownText()));
             this.setTitle(title.get(0).ownText());
         }
+        else logger.debug(String.format("Could not find a title for document at URL %s", head.baseUri()));
     }
 
     /**
@@ -99,12 +108,12 @@ public class Parser {
             String content = meta.attr("content");
             switch(meta.attr("name").toLowerCase()) {
                 case "description": {
-                    System.out.printf("Meta description - %s%n%n", content);
+                    logger.info(String.format("Meta description - %s%n%n", content));
                     this.setDescription(content);
                     break;
                 }
                 case "robots": {
-                    System.out.printf("Robots - %s%n%n", content);
+                    logger.info(String.format("Robots - %s%n%n", content));
                     if (content.contains("none") || content.contains("nofollow"))
                         this.setFollow(false);
                     if (content.contains("none") || content.contains("noindex"))
@@ -113,7 +122,7 @@ public class Parser {
                 }
                 case "keywords": {
                     String[] words = content.split(",\\s*");
-                    System.out.printf("Meta keywords - %s%n%n", Arrays.toString(words));
+                    logger.info(String.format("Meta keywords - %s%n%n", Arrays.toString(words)));
                     this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(content)));
                     break;
                 }
@@ -128,7 +137,8 @@ public class Parser {
     public void processHyperLink(Element node) {
         String link = node.attr("abs:href"); /* Get absolute link */
         String anchorText = node.ownText();
-        System.out.printf("Link to - %s%nAnchor Text - %s%n%n", link, anchorText);
+        logger.info(String.format("Link to - %s%nAnchor Text - %s%n%n", link, anchorText));
+
         this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(anchorText)));
         this.links.add(link);
     }
@@ -137,42 +147,42 @@ public class Parser {
      * Get title of document
      */
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     /**
      * Get meta description of document
      */
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     /**
      * Get the tokens extracted from the document
      */
     public List<String> getTokens() {
-        return tokens;
+        return this.tokens;
     }
 
     /**
      * Get the hyperlinks extracted from the document
      */
     public List<String> getLinks() {
-        return links;
+        return this.links;
     }
 
     /**
      * Get indicator which indicates whether or not hyperlinks can be followed
      */
     public boolean canFollow() {
-        return follow;
+        return this.follow;
     }
 
     /**
      * Get indicator which indicates whether or not the document can be indexed
      */
     public boolean canIndex() {
-        return index;
+        return this.index;
     }
 
     /**
@@ -208,8 +218,7 @@ public class Parser {
     }
 
     public void displayTokens() {
-        System.out.printf("Following tokens were found for document titled: %s%n", this.getTitle());
-        System.out.printf("[%s]%n", String.join(", ", this.getTokens()));
-        System.out.println();
+        logger.info(String.format("Following tokens were found for document titled: %s%n", this.getTitle()));
+        logger.info(String.format("[%s]%n%n", String.join(", ", this.getTokens())));
     }
 }

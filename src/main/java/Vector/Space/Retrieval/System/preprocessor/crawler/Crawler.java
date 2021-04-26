@@ -1,10 +1,15 @@
 package Vector.Space.Retrieval.System.preprocessor.crawler;
 
+import ch.qos.logback.classic.util.ContextInitializer;
+
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.Parser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -13,9 +18,16 @@ public class Crawler {
     private final Set<String> visitedUrls;
     private final Set<String> enqueued;
     private final InvertedIndexer indexer;
+    private final int limit;
+    private int crawlCount;
 
-    public Crawler(InvertedIndexer indexer) {
-        this.indexer = indexer;
+    private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
+
+    public Crawler(final int limit) {
+        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/configuration/logback-test.xml");
+        this.limit = limit;
+        this.crawlCount = 0;
+        this.indexer = new InvertedIndexer();
         this.urlFrontier = new LinkedList<>();
         this.visitedUrls = new HashSet<>();
         this.enqueued = new HashSet<>();
@@ -29,17 +41,22 @@ public class Crawler {
      */
     public void crawl(String url) {
         try {
+            logger.info(String.format("crawling url %s%n", url));
             Document document = Jsoup.connect(url).get(); /* Fetch the document at this url */
             Parser parser = new Parser(document);
             parser.parse();
 
+            this.visitedUrls.add(getNormalized(url));
             List<String> hyperlinks = parser.getLinks();
-            if (parser.canFollow()) enqueueUrls(filter(hyperlinks));
-            if (parser.canIndex())
+            if (parser.canFollow()) enqueueUrls(getFiltered(hyperlinks));
+            if (parser.canIndex()) {
                 this.indexer.addToIndex(parser.getTokens(), url, parser.getTitle(), parser.getDescription());
+                this.indexer.setCollectionSize(this.indexer.getCollectionSize()+1); /* increment number of indexed documents */
+            }
 
-            this.visitedUrls.add(url);
-            if (!this.urlFrontier.isEmpty()) crawl(this.dequeueUrl());
+            this.crawlCount++;
+
+            if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -51,14 +68,16 @@ public class Crawler {
      * or are already enqueued in the url frontier,
      * and remove links if they do not belong to the <i>uic.edu</i> domain
      * @param links List of urls extracted from the document
+     * @return list of urls not already crawled and not already in the URL frontier
      */
-    public List<String> filter(List<String> links) {
+    public List<String> getFiltered(List<String> links) {
         List<String> filteredLinks = new LinkedList<>();
         for (String link : links) {
-            if (link.contains("uic.edu")) {
-                String normalizedLink = normalize(link);
-                if (!(this.enqueued.contains(normalizedLink) || this.visitedUrls.contains(normalizedLink)))
+            if (/*link.contains("uic.edu")*/true) { /* this condition needs to be restored later on */
+                String normalizedLink = getNormalized(link);
+                if (!(this.enqueued.contains(normalizedLink) || this.visitedUrls.contains(normalizedLink))) {
                     filteredLinks.add(normalizedLink);
+                }
             }
         }
         return filteredLinks;
@@ -67,8 +86,9 @@ public class Crawler {
     /**
      * Removes page fragment id (if it exists) and any trailing '/' from the url
      * @param url Url to normalize
+     * @return absolute url with any page fragment and trailing '/' removed
      */
-    public String normalize(String url) {
+    public String getNormalized(String url) {
         String absoluteUrl = url;
         try {
             if (Pattern.matches("^.*#.+$", url)) {
@@ -84,6 +104,7 @@ public class Crawler {
             e.printStackTrace();
         }
 
+        logger.info(String.format("URL - %s => Normalized URL - %s%n%n", url, absoluteUrl));
         return absoluteUrl;
     }
 
@@ -102,9 +123,9 @@ public class Crawler {
      * Pops and returns the url at the front of the url frontier
      * <br>
      * and also removes it from the set of enqueued urls
+     * @return next url to crawl
      */
     public String dequeueUrl() {
-        if (this.urlFrontier.isEmpty()) return "";
         String nextUrl = this.urlFrontier.poll();
         this.enqueued.remove(nextUrl);
         return nextUrl;

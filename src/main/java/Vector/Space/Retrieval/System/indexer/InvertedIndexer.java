@@ -1,7 +1,11 @@
 package Vector.Space.Retrieval.System.indexer;
 
+import ch.qos.logback.classic.util.ContextInitializer;
+
 import Vector.Space.Retrieval.System.preprocessor.IndexItem;
 import Vector.Space.Retrieval.System.preprocessor.WebDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,9 +20,13 @@ public class InvertedIndexer {
     private final Map<String, Map<String, IndexItem>> index;
     private final Map<String, Double> documentVector;
 
+    private static final Logger logger = LoggerFactory.getLogger(InvertedIndexer.class);
+
     public InvertedIndexer() {
+        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/configuration/logback-test.xml");
         this.index = new HashMap<>();
         this.documentVector = new HashMap<>();
+        this.collectionSize = 0;
     }
 
     /**
@@ -33,15 +41,15 @@ public class InvertedIndexer {
         WebDocument document = new WebDocument(url, title, description);
         tokens.forEach(token -> {
             this.index.putIfAbsent(token, new HashMap<>());
-            if (!this.index.get(token).containsKey(url))
-                    this.index.get(token).put(url, new IndexItem(document, 0));
+            if (!this.index.get(token).containsKey(url)) {
+                this.index.get(token).put(url, new IndexItem(document, 0));
+            }
 
             int oldTermFrequency = this.index.get(token).get(url).getTermFrequency();
             this.index.get(token).get(url).setTermFrequency(oldTermFrequency+1);
-            System.out.printf("Added term %s to index%n", token);
         });
-        System.out.println("indexed!");
-        System.out.println(this.toString());
+        logger.info("indexed!");
+        logger.info(this.toString());
     }
 
     /**
@@ -100,10 +108,12 @@ public class InvertedIndexer {
         if (invIndex.containsKey(term) && invIndex.get(term).containsKey(documentUrl))
             return invIndex.get(term).get(documentUrl).getTermFrequency();
 
-        System.out.printf("Queried for term frequency of %s%n", term);
+        logger.info(String.format("Queried for term frequency of %s%n", term));
+
         if (invIndex.containsKey(term)) System.out.printf("%s does not appear in the document at url %s%n", term, documentUrl);
-        else System.out.printf("%s does not appear in the whole index%n", term);
-        System.out.println();
+        else {
+            logger.info(String.format("%s does not appear in the whole index%n%n", term));
+        }
         return 0;
     }
 
@@ -128,10 +138,9 @@ public class InvertedIndexer {
         Map<String, Map<String, IndexItem>> invIndex = this.getIndex();
 
         invIndex.keySet().forEach(token -> {
-            result.append(token);
             invIndex.get(token).forEach((documentUrl, indexItem) -> {
-                result.append(String.format("%s -> %d\t\t",
-                        indexItem.getDocument().getTitle(), indexItem.getTermFrequency()));
+                result.append(String.format("%s -> %s -> %d\t\t",
+                        token, indexItem.getDocument().getTitle(), indexItem.getTermFrequency()));
                 result.append("\n");
             });
         });
@@ -139,7 +148,7 @@ public class InvertedIndexer {
     }
 
     /**
-     * This returns the inverted index of the current indexer instance
+     * Obtains the inverted index of the current indexer instance
      * @return Inverted index of this collection
      */
     public Map<String, Map<String, IndexItem>> getIndex() {
@@ -147,7 +156,7 @@ public class InvertedIndexer {
     }
 
     /**
-     * Returns the vector having euclidean normalized lengths of each document indexed
+     * Obtains the vector having euclidean normalized lengths of each document indexed
      * @return Map of document urls to euclidean normalized lengths
      */
     public Map<String, Double> getDocumentVector() {
@@ -155,7 +164,7 @@ public class InvertedIndexer {
     }
 
     /**
-     * Returns euclidean normalized vector of document at specified url
+     * Obtains the euclidean normalized vector of document at specified url
      * @param documentUrl Absolute URL of document
      * @return the euclidean normalized length
      */
@@ -163,6 +172,14 @@ public class InvertedIndexer {
         if (this.documentVector.containsKey(documentUrl))
             return this.documentVector.get(documentUrl);
         return 0.0;
+    }
+
+    /**
+     * Get the number of documents indexed till now
+     * @return Number of indexed documents
+     */
+    public int getCollectionSize() {
+        return this.collectionSize;
     }
 
     /**

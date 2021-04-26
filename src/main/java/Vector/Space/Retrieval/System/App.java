@@ -2,6 +2,7 @@ package Vector.Space.Retrieval.System;
 
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
+import Vector.Space.Retrieval.System.preprocessor.crawler.Crawler;
 import Vector.Space.Retrieval.System.query.QueryProcessor;
 
 import java.util.ArrayList;
@@ -47,6 +48,10 @@ public class App {
         displayAverageMetrics(rankedMapForAllQueries, 50);
         displayAverageMetrics(rankedMapForAllQueries, 100);
         displayAverageMetrics(rankedMapForAllQueries, 500);*/
+
+
+        Crawler crawler = new Crawler(2);
+        crawler.crawl("https://www.html.am/");
     }
 
     public static void displayAverageMetrics(List<Map<String, Double>> rankedMapForAllQueries, int k) {

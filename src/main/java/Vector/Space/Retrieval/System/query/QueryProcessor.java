@@ -2,6 +2,8 @@ package Vector.Space.Retrieval.System.query;
 
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 
+import ch.qos.logback.classic.util.ContextInitializer;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -9,6 +11,8 @@ import java.util.stream.Collectors;
 
 import Vector.Space.Retrieval.System.DocumentUtils;
 import Vector.Space.Retrieval.System.preprocessor.Tokenizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class will parse and tokenize the queries using the given tokenizer instance,
@@ -17,6 +21,8 @@ import Vector.Space.Retrieval.System.preprocessor.Tokenizer;
  * @author Siddhanth Venkateshwaran
  */
 public class QueryProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(QueryProcessor.class);
 
     /**
      * Returns the list of all queries as plain texts

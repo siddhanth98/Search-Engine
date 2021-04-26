@@ -19,11 +19,11 @@ public class IndexItem implements Serializable {
     }
 
     public WebDocument getDocument() {
-        return document;
+        return this.document;
     }
 
     public int getTermFrequency() {
-        return termFrequency;
+        return this.termFrequency;
     }
 
     /**
