@@ -4,10 +4,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Parser to utilize JSoup to parse a given document
@@ -41,6 +38,7 @@ public class Parser {
     public void parse() {
         for (Element child : this.document.children()) processNode(child);
         System.out.printf("Finishing parsing document at url %s%n", this.document.baseUri());
+        displayTokens();
     }
 
     /**
@@ -207,5 +205,11 @@ public class Parser {
      */
     public void setIndex(boolean index) {
         this.index = index;
+    }
+
+    public void displayTokens() {
+        System.out.printf("Following tokens were found for document titled: %s%n", this.getTitle());
+        System.out.printf("[%s]%n", String.join(", ", this.getTokens()));
+        System.out.println();
     }
 }

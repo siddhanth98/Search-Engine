@@ -1,14 +1,21 @@
 package Vector.Space.Retrieval.System.preprocessor;
 
+import java.io.Serializable;
+
 /**
  * This class describes a generic structure of a web page(document) to be used
  * during indexing and to display search results
  * @author Siddhanth Venkateshwaran
  */
-public class Document {
-    private final String url, title, description;
+public class WebDocument implements Serializable {
+    private String title, description;
+    private final String url;
 
-    public Document(final String url, final String title, final String description) {
+    public WebDocument(final String url) {
+        this(url, "", "");
+    }
+
+    public WebDocument(final String url, final String title, final String description) {
         this.url = url;
         this.title = title;
         this.description = description;
@@ -37,5 +44,21 @@ public class Document {
      */
     public String getDescription() {
         return this.description;
+    }
+
+    /**
+     * Modifies the title of this document
+     * @param title New title of this document
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    /**
+     * Modifies the meta description of this document
+     * @param description New description of this document
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

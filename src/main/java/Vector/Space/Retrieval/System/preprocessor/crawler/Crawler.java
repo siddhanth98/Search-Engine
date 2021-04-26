@@ -9,10 +9,10 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class Crawler {
-    final Queue<String> urlFrontier;
-    final Set<String> visitedUrls;
-    final Set<String> enqueued;
-    final InvertedIndexer indexer;
+    private final Queue<String> urlFrontier;
+    private final Set<String> visitedUrls;
+    private final Set<String> enqueued;
+    private final InvertedIndexer indexer;
 
     public Crawler(InvertedIndexer indexer) {
         this.indexer = indexer;

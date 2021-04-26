@@ -17,7 +17,7 @@ import static Vector.Space.Retrieval.System.Constants.k;
  */
 public class App {
     public static void main(String[] args) {
-        InvertedIndexer indexer = new InvertedIndexer(collectionDirectoryName, collectionSize, fileNamePrefix);
+        /*InvertedIndexer indexer = new InvertedIndexer(collectionDirectoryName, collectionSize, fileNamePrefix);
         StopWordProcessor stopWordProcessor = new StopWordProcessor(stopWordsFileName);
         Tokenizer tokenizer = new Tokenizer(stem, eliminateStopWords, stopWordProcessor);
         List<List<String>> queriesTokens = QueryProcessor.parseQueriesAndGetTokens(queriesFileName, tokenizer);
@@ -46,7 +46,7 @@ public class App {
         displayAverageMetrics(rankedMapForAllQueries, 10);
         displayAverageMetrics(rankedMapForAllQueries, 50);
         displayAverageMetrics(rankedMapForAllQueries, 100);
-        displayAverageMetrics(rankedMapForAllQueries, 500);
+        displayAverageMetrics(rankedMapForAllQueries, 500);*/
     }
 
     public static void displayAverageMetrics(List<Map<String, Double>> rankedMapForAllQueries, int k) {
