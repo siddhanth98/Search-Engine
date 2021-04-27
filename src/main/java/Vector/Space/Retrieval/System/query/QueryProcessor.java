@@ -2,6 +2,9 @@ package Vector.Space.Retrieval.System.query;
 
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 
+import Vector.Space.Retrieval.System.preprocessor.IndexItem;
+import Vector.Space.Retrieval.System.preprocessor.WebDocument;
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.util.ContextInitializer;
 
 import java.io.BufferedReader;
@@ -23,91 +26,105 @@ import org.slf4j.LoggerFactory;
 public class QueryProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryProcessor.class);
+    private final InvertedIndexer indexer;
+    private final Tokenizer tokenizer;
+
+    public QueryProcessor(final InvertedIndexer indexer) {
+        this.indexer = indexer;
+        this.tokenizer = new Tokenizer();
+//        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
+    }
+
+//    /**
+//     * Returns the list of all queries as plain texts
+//     * @param filename Name of the top-level file containing all queries
+//     * @return list of plain texts of all queries
+//     */
+//    public static List<String> parseAndGetQueries(String filename) {
+//        BufferedReader br = new BufferedReader(
+//                new InputStreamReader(
+//                        Objects.requireNonNull(
+//                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
+//        List<String> queries = new ArrayList<>();
+//        String line;
+//        try {
+//            while((line = br.readLine()) != null) queries.add(line);
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//        }
+//        return queries;
+//    }
+
+//    /**
+//     * Tokenizes all queries and returns a list of list of all tokens corresponding to each query
+//     * @param filename Name of the file containing all queries
+//     * @param tokenizer Instance of tokenizer to use to tokenize the query - should be the same tokenizer instance used by
+//     *                  the indexer
+//     * @return List of list of all tokens of all queries
+//     */
+//    public static List<List<String>> parseQueriesAndGetTokens(String filename, Tokenizer tokenizer) {
+//        BufferedReader br = new BufferedReader(
+//                new InputStreamReader(
+//                        Objects.requireNonNull(
+//                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
+//        String line;
+//        List<List<String>> tokens = new ArrayList<>();
+//
+//        try {
+//            while ((line = br.readLine()) != null) {
+//                tokens.add(new ArrayList<>());
+//                tokens.get(tokens.size()-1).addAll(tokenizer.tokenize(line));
+//            }
+//        }
+//        catch(Exception e) {
+//            e.printStackTrace();
+//        }
+//        return tokens.stream().map(tokenizer::preprocessTokens).collect(Collectors.toList());
+//    }
 
     /**
-     * Returns the list of all queries as plain texts
-     * @param filename Name of the top-level file containing all queries
-     * @return list of plain texts of all queries
+     * Parse the free-text input query using the tokenizer to get the list of tokens
+     * @param query Free-text query
+     * @return List of tokens for the input query
      */
-    public static List<String> parseAndGetQueries(String filename) {
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(
-                        Objects.requireNonNull(
-                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
-        List<String> queries = new ArrayList<>();
-        String line;
-        try {
-            while((line = br.readLine()) != null) queries.add(line);
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-        return queries;
+    public List<String> getTokens(String query) {
+        return this.tokenizer.preprocessTokens(this.tokenizer.tokenize(query));
     }
 
     /**
-     * Tokenizes all queries and returns a list of list of all tokens corresponding to each query
-     * @param filename Name of the file containing all queries
-     * @param tokenizer Instance of tokenizer to use to tokenize the query - should be the same tokenizer instance used by
-     *                  the indexer
-     * @return List of list of all tokens of all queries
-     */
-    public static List<List<String>> parseQueriesAndGetTokens(String filename, Tokenizer tokenizer) {
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(
-                        Objects.requireNonNull(
-                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
-        String line;
-        List<List<String>> tokens = new ArrayList<>();
-
-        try {
-            while ((line = br.readLine()) != null) {
-                tokens.add(new ArrayList<>());
-                tokens.get(tokens.size()-1).addAll(tokenizer.tokenize(line));
-            }
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-        return tokens.stream().map(tokenizer::preprocessTokens).collect(Collectors.toList());
-    }
-
-    public static List<String> getTokens(String query, Tokenizer tokenizer) {
-        return tokenizer.preprocessTokens(tokenizer.tokenize(query));
-    }
-
-    /**
-     * Computes the similarity of a query with all documents in the collection that have at least 1 token appearing in the query
-     * @param indexer Instance of inverted indexer
-     * @param invertedIndex Inverted index of the target collection
+     * Computes the similarity of a query with all documents in the collection that have at least 1 token
+     * in common with the query
      * @param queryTokens List of all tokens for the given query
-     * @param k number of most similar documents to be retrieved
-     * @return unordered map of document -> similarity value
+     * @return ordered map of document -> similarity value in non-increasing order of similarity values
      */
-    public static Map<String, Double> getRankedMapOfDocuments(InvertedIndexer indexer, Map<String, Map<String, Integer>> invertedIndex,
-                                                              List<String> queryTokens, int k) {
-        Map<String, Double> similarityMap = new HashMap<>();
+    public Map<WebDocument, Double> getRankedMapOfDocuments(List<String> queryTokens) {
+        Map<String, Map<String, IndexItem>> invertedIndex = this.indexer.getIndex();
+        Map<WebDocument, Double> similarityMap = new HashMap<>();
         Map<String, Integer> queryTermFrequencyMap = getTermFrequencyMap(queryTokens);
 
         queryTokens.forEach(currentToken -> {
-            if (invertedIndex.containsKey(currentToken))
-                    invertedIndex.get(currentToken).forEach((currentDocument, termFrequency) -> {
-                        try {
-                            double currentSimilarityValue =
-                                    indexer.getWeight(currentToken, currentDocument) *
-                                            getWeight(queryTermFrequencyMap.get(currentToken),
-                                                    indexer.getInverseDocumentFrequency(currentToken));
+            if (invertedIndex.containsKey(currentToken)) {
+                invertedIndex.get(currentToken).forEach((documentUrl, indexItem) -> {
+                    try {
+                        WebDocument document = indexItem.getDocument();
+                        double similarityValue =
+                                indexer.getWeight(currentToken, documentUrl) *
+                                        getWeight(queryTermFrequencyMap.get(currentToken), indexer.getInverseDocumentFrequency(currentToken));
 
-                            if (!similarityMap.containsKey(currentDocument))
-                                similarityMap.put(currentDocument, currentSimilarityValue);
-                            else
-                                similarityMap.put(currentDocument, similarityMap.get(currentDocument) + currentSimilarityValue);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-                }
-        );
+                        if (!similarityMap.containsKey(document)) similarityMap.put(document, 0.0);
+                        similarityMap.put(document, similarityMap.get(document) + similarityValue);
+                    }
+                    catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            else logger.info(String.format("Index does not have an entry for term %s%n", currentToken));
+        });
+
+        /* divide each computed similarity value by that document's euclidean normalized length */
+        similarityMap.forEach((document, simValue) -> similarityMap.put(document, simValue / indexer.getDocumentLength(document.getUrl())));
         return getRankedMap(similarityMap);
     }
 
@@ -116,9 +133,9 @@ public class QueryProcessor {
      * @param queryDocumentSimilarityMap Unordered Map of document -> similarity values
      * @return map of document -> similarity value (ordered in non-increasing order of cosine similarity value)
      */
-    private static Map<String, Double> getRankedMap(Map<String, Double> queryDocumentSimilarityMap) {
-        List<String> rankedList = new ArrayList<>();
-        Map<String, Double> retrievedDocumentSimilarityMap = new LinkedHashMap<>();
+    private static Map<WebDocument, Double> getRankedMap(Map<WebDocument, Double> queryDocumentSimilarityMap) {
+        List<WebDocument> rankedList = new ArrayList<>();
+        Map<WebDocument, Double> retrievedDocumentSimilarityMap = new LinkedHashMap<>();
 
         queryDocumentSimilarityMap.entrySet()
                 .stream()
@@ -126,6 +143,11 @@ public class QueryProcessor {
                 .forEach(e -> rankedList.add(e.getKey()));
         rankedList.forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
         return retrievedDocumentSimilarityMap;
+    }
+
+    public static void printRankedDocuments(Map<WebDocument, Double> rankedMap) {
+        rankedMap.forEach((key, value) ->
+                logger.info(String.format("Title = %s ; Similarity = %f%n", key.getTitle(), value)));
     }
 
     /**

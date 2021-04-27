@@ -1,6 +1,6 @@
 package Vector.Space.Retrieval.System.indexer;
 
-import ch.qos.logback.classic.util.ContextInitializer;
+import ch.qos.logback.classic.Level;
 
 import Vector.Space.Retrieval.System.preprocessor.IndexItem;
 import Vector.Space.Retrieval.System.preprocessor.WebDocument;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class will build and store the inverted index for the cranfield collection
+ * This class will build and store the inverted index for the search engine
  * @author Siddhanth Venkateshwaran
  */
 public class InvertedIndexer {
@@ -20,13 +20,13 @@ public class InvertedIndexer {
     private final Map<String, Map<String, IndexItem>> index;
     private final Map<String, Double> documentVector;
 
-    private static final Logger logger = LoggerFactory.getLogger(InvertedIndexer.class);
+    private final Logger logger = LoggerFactory.getLogger(InvertedIndexer.class);
 
     public InvertedIndexer() {
-        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/configuration/logback-test.xml");
         this.index = new HashMap<>();
         this.documentVector = new HashMap<>();
         this.collectionSize = 0;
+//        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
 
     /**
@@ -41,15 +41,12 @@ public class InvertedIndexer {
         WebDocument document = new WebDocument(url, title, description);
         tokens.forEach(token -> {
             this.index.putIfAbsent(token, new HashMap<>());
-            if (!this.index.get(token).containsKey(url)) {
+            if (!this.index.get(token).containsKey(url))
                 this.index.get(token).put(url, new IndexItem(document, 0));
-            }
 
             int oldTermFrequency = this.index.get(token).get(url).getTermFrequency();
             this.index.get(token).get(url).setTermFrequency(oldTermFrequency+1);
         });
-        logger.info("indexed!");
-        logger.info(this.toString());
     }
 
     /**
@@ -80,7 +77,7 @@ public class InvertedIndexer {
     /**
      * Computes and returns the weight of a token for a given document
      * @param term Term whose weight is to be computed
-     * @param document Target document for the term
+     * @param document Target document url for the term
      * @return Weight of term for the target document i.e. TF(term, document) * IDF(term)
      */
     public double getWeight(String term, String document) throws Exception {
@@ -105,9 +102,9 @@ public class InvertedIndexer {
      */
     public int getTermFrequency(String term, String documentUrl) {
         Map<String, Map<String, IndexItem>> invIndex = this.getIndex();
-        if (invIndex.containsKey(term) && invIndex.get(term).containsKey(documentUrl))
+        if (invIndex.containsKey(term) && invIndex.get(term).containsKey(documentUrl)) {
             return invIndex.get(term).get(documentUrl).getTermFrequency();
-
+        }
         logger.info(String.format("Queried for term frequency of %s%n", term));
 
         if (invIndex.containsKey(term)) System.out.printf("%s does not appear in the document at url %s%n", term, documentUrl);
@@ -117,14 +114,17 @@ public class InvertedIndexer {
         return 0;
     }
 
-
     /**
      * This computes and returns the IDF of a given term
      * @param term The term whose IDF is to be found
      * @return IDF(term), which is (log<sub>10</sub> ( collectionSize / documentFrequency(term) ))
      */
     public double getInverseDocumentFrequency(String term) throws Exception {
-        if (this.index.containsKey(term)) return Math.log10((double)(this.collectionSize) / (double)(getDocumentFrequency(term)));
+        if (this.index.containsKey(term)) {
+            double df = getDocumentFrequency(term);
+            if (df == this.collectionSize) return 1;
+            return Math.log10((double) (this.collectionSize) / (double) (getDocumentFrequency(term)));
+        }
         throw new Exception();
     }
 
@@ -137,13 +137,11 @@ public class InvertedIndexer {
         StringBuffer result = new StringBuffer();
         Map<String, Map<String, IndexItem>> invIndex = this.getIndex();
 
-        invIndex.keySet().forEach(token -> {
-            invIndex.get(token).forEach((documentUrl, indexItem) -> {
-                result.append(String.format("%s -> %s -> %d\t\t",
-                        token, indexItem.getDocument().getTitle(), indexItem.getTermFrequency()));
-                result.append("\n");
-            });
-        });
+        invIndex.keySet().forEach(token -> invIndex.get(token).forEach((documentUrl, indexItem) -> {
+            result.append(String.format("%s -> %s -> %d\t\t",
+                    token, indexItem.getDocument().getTitle(), indexItem.getTermFrequency()));
+            result.append("\n");
+        }));
         return result.toString();
     }
 

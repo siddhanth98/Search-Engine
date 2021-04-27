@@ -1,5 +1,6 @@
 package Vector.Space.Retrieval.System.preprocessor;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.util.ContextInitializer;
 
 import org.jsoup.nodes.Document;
@@ -29,7 +30,6 @@ public class Parser {
     private static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     public Parser(final Document document) {
-        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/configuration/logback-test.xml");
         this.document = document;
         this.title = "";
         this.description = "";
@@ -37,6 +37,8 @@ public class Parser {
         this.links = new ArrayList<>();
         this.follow = true;
         this.index = true;
+
+        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
 
     /**

@@ -25,4 +25,5 @@ public class Constants {
     public static boolean eliminateStopWords = config.getBoolean("conf.StopWordsElimination");
 
     static int k = config.getInt("conf.K");
+    public static int crawlLimit = config.getInt("conf.CrawlLimit");
 }

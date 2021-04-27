@@ -1,5 +1,6 @@
 package Vector.Space.Retrieval.System.preprocessor.crawler;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.util.ContextInitializer;
 
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
@@ -24,13 +25,14 @@ public class Crawler {
     private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
 
     public Crawler(final int limit) {
-        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/configuration/logback-test.xml");
         this.limit = limit;
-        this.crawlCount = 0;
+        this.crawlCount = 1;
         this.indexer = new InvertedIndexer();
         this.urlFrontier = new LinkedList<>();
         this.visitedUrls = new HashSet<>();
         this.enqueued = new HashSet<>();
+
+//        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
 
     /**
@@ -57,6 +59,7 @@ public class Crawler {
             this.crawlCount++;
 
             if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
+            else this.indexer.constructDocumentVectorTable();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -73,7 +76,7 @@ public class Crawler {
     public List<String> getFiltered(List<String> links) {
         List<String> filteredLinks = new LinkedList<>();
         for (String link : links) {
-            if (/*link.contains("uic.edu")*/true) { /* this condition needs to be restored later on */
+            if (link.contains("uic.edu")) {
                 String normalizedLink = getNormalized(link);
                 if (!(this.enqueued.contains(normalizedLink) || this.visitedUrls.contains(normalizedLink))) {
                     filteredLinks.add(normalizedLink);
@@ -104,7 +107,7 @@ public class Crawler {
             e.printStackTrace();
         }
 
-        logger.info(String.format("URL - %s => Normalized URL - %s%n%n", url, absoluteUrl));
+//        logger.info(String.format("URL - %s => Normalized URL - %s%n%n", url, absoluteUrl));
         return absoluteUrl;
     }
 
@@ -129,5 +132,13 @@ public class Crawler {
         String nextUrl = this.urlFrontier.poll();
         this.enqueued.remove(nextUrl);
         return nextUrl;
+    }
+
+    /**
+     * Get the indexer used by this crawler
+     * @return Inverted index used for this collection
+     */
+    public InvertedIndexer getIndexer() {
+        return this.indexer;
     }
 }

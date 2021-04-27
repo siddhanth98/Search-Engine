@@ -4,10 +4,13 @@ import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
 import Vector.Space.Retrieval.System.preprocessor.crawler.Crawler;
 import Vector.Space.Retrieval.System.query.QueryProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import static Vector.Space.Retrieval.System.Constants.*;
 import static Vector.Space.Retrieval.System.Constants.k;
@@ -17,7 +20,9 @@ import static Vector.Space.Retrieval.System.Constants.k;
  * @author Siddhanth Venkateshwaran
  */
 public class App {
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
     public static void main(String[] args) {
+
         /*InvertedIndexer indexer = new InvertedIndexer(collectionDirectoryName, collectionSize, fileNamePrefix);
         StopWordProcessor stopWordProcessor = new StopWordProcessor(stopWordsFileName);
         Tokenizer tokenizer = new Tokenizer(stem, eliminateStopWords, stopWordProcessor);
@@ -49,9 +54,20 @@ public class App {
         displayAverageMetrics(rankedMapForAllQueries, 100);
         displayAverageMetrics(rankedMapForAllQueries, 500);*/
 
+        Crawler crawler = new Crawler(crawlLimit);
+        QueryProcessor queryProcessor = new QueryProcessor(crawler.getIndexer());
+        Scanner sc = new Scanner(System.in);
+        List<String> queryTokens;
 
-        Crawler crawler = new Crawler(2);
-        crawler.crawl("https://www.html.am/");
+        crawler.crawl("https://cs.uic.edu/");
+        logger.info(crawler.getIndexer().toString());
+        queryTokens = queryProcessor.getTokens(sc.nextLine());
+        printRankedDocuments(queryProcessor.getRankedMapOfDocuments(queryTokens));
+    }
+
+    public static void printRankedDocuments(Map<WebDocument, Double> rankedMap) {
+        rankedMap.forEach((key, value) ->
+                logger.info(String.format("Title = %s ; Similarity = %f%n", key.getTitle(), value)));
     }
 
     public static void displayAverageMetrics(List<Map<String, Double>> rankedMapForAllQueries, int k) {
