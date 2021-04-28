@@ -139,10 +139,13 @@ public class Parser {
     public void processHyperLink(Element node) {
         String link = node.attr("abs:href"); /* Get absolute link */
         String anchorText = node.ownText();
-        logger.info(String.format("Link to - %s%nAnchor Text - %s%n%n", link, anchorText));
 
-        this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(anchorText)));
-        this.links.add(link);
+        if (!link.isEmpty()) {
+            logger.info(String.format("Link to - %s%nAnchor Text - %s%n%n", link, anchorText));
+
+            this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(anchorText)));
+            this.links.add(link);
+        }
     }
 
     /**

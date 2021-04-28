@@ -125,6 +125,7 @@ public class QueryProcessor {
 
         /* divide each computed similarity value by that document's euclidean normalized length */
         similarityMap.forEach((document, simValue) -> similarityMap.put(document, simValue / indexer.getDocumentLength(document.getUrl())));
+
         return getRankedMap(similarityMap);
     }
 

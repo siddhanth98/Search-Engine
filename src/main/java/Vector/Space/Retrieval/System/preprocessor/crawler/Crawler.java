@@ -1,23 +1,23 @@
 package Vector.Space.Retrieval.System.preprocessor.crawler;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.util.ContextInitializer;
-
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.Parser;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Crawler {
     private final Queue<String> urlFrontier;
     private final Set<String> visitedUrls;
     private final Set<String> enqueued;
+    private final Map<String, String> redirectMap;
     private final InvertedIndexer indexer;
     private final int limit;
     private int crawlCount;
@@ -31,6 +31,7 @@ public class Crawler {
         this.urlFrontier = new LinkedList<>();
         this.visitedUrls = new HashSet<>();
         this.enqueued = new HashSet<>();
+        this.redirectMap = new HashMap<>();
 
 //        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
@@ -43,27 +44,31 @@ public class Crawler {
      */
     public void crawl(String url) {
         try {
-            logger.info(String.format("crawling url %s%n", url));
-            Document document = Jsoup.connect(url).get(); /* Fetch the document at this url */
-            Parser parser = new Parser(document);
-            parser.parse();
+            String crawlUrl = getNormalized(url);
+            Document document = connectAndFetch(crawlUrl);
+            String redirectedUrl = getNormalized(document.baseUri());
+            if (!(crawled(crawlUrl) || crawled(redirectedUrl))) {
+                /* Crawl this document */
+                Parser parser = new Parser(document);
+                parser.parse();
+                List<String> hyperlinks = parser.getLinks();
+                if (parser.canFollow()) enqueueUrls(getFiltered(hyperlinks, crawlUrl, redirectedUrl));
+                if (parser.canIndex()) {
+                    this.indexer.addToIndex(parser.getTokens(), crawlUrl, parser.getTitle(), parser.getDescription());
+                    this.indexer.setCollectionSize(this.indexer.getCollectionSize() + 1); /* increment number of indexed documents */
+                }
 
-            this.visitedUrls.add(getNormalized(url));
-            List<String> hyperlinks = parser.getLinks();
-            if (parser.canFollow()) enqueueUrls(getFiltered(hyperlinks));
-            if (parser.canIndex()) {
-                this.indexer.addToIndex(parser.getTokens(), url, parser.getTitle(), parser.getDescription());
-                this.indexer.setCollectionSize(this.indexer.getCollectionSize()+1); /* increment number of indexed documents */
+                /* this url has been crawled. add to visited set */
+                markCrawled(crawlUrl, redirectedUrl);
+                this.crawlCount++;
             }
-
-            this.crawlCount++;
-
-            if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
-            else this.indexer.constructDocumentVectorTable();
         }
         catch(Exception e) {
             e.printStackTrace();
         }
+
+        if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
+        else finishCrawl();
     }
 
     /**
@@ -73,17 +78,68 @@ public class Crawler {
      * @param links List of urls extracted from the document
      * @return list of urls not already crawled and not already in the URL frontier
      */
-    public List<String> getFiltered(List<String> links) {
+    public List<String> getFiltered(List<String> links, String originalUrl, String redirectedUrl) {
         List<String> filteredLinks = new LinkedList<>();
+        Set<String> collectedLinks = new HashSet<>();
+
         for (String link : links) {
-            if (link.contains("uic.edu")) {
-                String normalizedLink = getNormalized(link);
-                if (!(this.enqueued.contains(normalizedLink) || this.visitedUrls.contains(normalizedLink))) {
+            String normalizedLink = getNormalized(link);
+            if (normalizedLink.contains("uic.edu") && !collectedLinks.contains(normalizedLink) &&
+                    !(normalizedLink.equals(originalUrl) || normalizedLink.equals(redirectedUrl))) {
+                if (isValid(normalizedLink)) {
+                    logger.info(String.format("adding hyperlink %s", normalizedLink));
                     filteredLinks.add(normalizedLink);
                 }
+                collectedLinks.add(normalizedLink);
             }
         }
+        logger.info("\n\n");
         return filteredLinks;
+    }
+
+    /**
+     * Checks whether or not the url is already enqueued, crawled and has proper protocols
+     * @param url URL being examined
+     * @return a boolean indicating if URL is valid to be crawled or not
+     */
+    public boolean isValid(String url) {
+        return (
+                !(this.enqueued.contains(url) || crawled(url)) &&
+                (url.contains("http"))
+        );
+    }
+
+    public Document connectAndFetch(String url) throws IOException {
+        Connection.Response response =
+                Jsoup.connect(url.concat("/"))
+                        .timeout(10000)
+                        .validateTLSCertificates(false)
+                        .followRedirects(true).execute();
+
+        logger.info(String.format("crawling url-%d %s", this.crawlCount, url));
+        return response.parse();
+    }
+
+    /**
+     * Marks the url (and its redirected url if it exists) as crawled
+     * @param url URL most recently crawled
+     */
+    public void markCrawled(String url, String redirectedUrl) {
+        this.visitedUrls.add(url);
+
+        if (!url.equals(redirectedUrl)) {
+            this.visitedUrls.add(redirectedUrl);
+            this.redirectMap.put(url, redirectedUrl);
+        }
+    }
+
+    /**
+     * Checks whether or not this url (or its redirected url) has already been crawled
+     * @param url Current URL being checked for past crawl
+     */
+    public boolean crawled(String url) {
+        String redirectedUrl = this.redirectMap.getOrDefault(url, url);
+        return (this.visitedUrls.contains(url) || this.visitedUrls.contains(redirectedUrl));
     }
 
     /**
@@ -107,8 +163,15 @@ public class Crawler {
             e.printStackTrace();
         }
 
-//        logger.info(String.format("URL - %s => Normalized URL - %s%n%n", url, absoluteUrl));
         return absoluteUrl;
+    }
+
+    /**
+     * Constructs the euclidean normalized document length table if all documents are crawled
+     */
+    public void finishCrawl() {
+        if (this.urlFrontier.isEmpty() || this.crawlCount >= this.limit)
+            this.indexer.constructDocumentVectorTable();
     }
 
     /**

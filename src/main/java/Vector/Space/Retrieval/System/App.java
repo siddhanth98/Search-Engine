@@ -60,8 +60,7 @@ public class App {
         List<String> queryTokens;
 
         crawler.crawl("https://cs.uic.edu/");
-        logger.info(crawler.getIndexer().toString());
-        queryTokens = queryProcessor.getTokens(sc.nextLine());
+        queryTokens = queryProcessor.getTokens("CS master of science courses");
         printRankedDocuments(queryProcessor.getRankedMapOfDocuments(queryTokens));
     }
 

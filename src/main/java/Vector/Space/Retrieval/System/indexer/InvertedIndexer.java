@@ -192,6 +192,8 @@ public class InvertedIndexer {
      * Prints the euclidean normalized document vector of all documents in the index
      */
     public void printDocumentVector() {
-        this.documentVector.keySet().forEach(document -> System.out.printf("%s -> %s%n", document, this.documentVector.get(document)));
+        logger.info("print doc vector now");
+        this.getDocumentVector().forEach((docUrl, docLength) -> logger.info(String.format("%s -> %f", docUrl, docLength)));
+        logger.info("finished printing doc vector now");
     }
 }
