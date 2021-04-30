@@ -35,54 +35,6 @@ public class QueryProcessor {
 //        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
 
-//    /**
-//     * Returns the list of all queries as plain texts
-//     * @param filename Name of the top-level file containing all queries
-//     * @return list of plain texts of all queries
-//     */
-//    public static List<String> parseAndGetQueries(String filename) {
-//        BufferedReader br = new BufferedReader(
-//                new InputStreamReader(
-//                        Objects.requireNonNull(
-//                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
-//        List<String> queries = new ArrayList<>();
-//        String line;
-//        try {
-//            while((line = br.readLine()) != null) queries.add(line);
-//        }
-//        catch(Exception e) {
-//            e.printStackTrace();
-//        }
-//        return queries;
-//    }
-
-//    /**
-//     * Tokenizes all queries and returns a list of list of all tokens corresponding to each query
-//     * @param filename Name of the file containing all queries
-//     * @param tokenizer Instance of tokenizer to use to tokenize the query - should be the same tokenizer instance used by
-//     *                  the indexer
-//     * @return List of list of all tokens of all queries
-//     */
-//    public static List<List<String>> parseQueriesAndGetTokens(String filename, Tokenizer tokenizer) {
-//        BufferedReader br = new BufferedReader(
-//                new InputStreamReader(
-//                        Objects.requireNonNull(
-//                                QueryProcessor.class.getClassLoader().getResourceAsStream(filename))));
-//        String line;
-//        List<List<String>> tokens = new ArrayList<>();
-//
-//        try {
-//            while ((line = br.readLine()) != null) {
-//                tokens.add(new ArrayList<>());
-//                tokens.get(tokens.size()-1).addAll(tokenizer.tokenize(line));
-//            }
-//        }
-//        catch(Exception e) {
-//            e.printStackTrace();
-//        }
-//        return tokens.stream().map(tokenizer::preprocessTokens).collect(Collectors.toList());
-//    }
-
     /**
      * Parse the free-text input query using the tokenizer to get the list of tokens
      * @param query Free-text query

@@ -25,5 +25,9 @@ public class Constants {
     public static boolean eliminateStopWords = config.getBoolean("conf.StopWordsElimination");
 
     static int k = config.getInt("conf.K");
+
     public static int crawlLimit = config.getInt("conf.CrawlLimit");
+    public static String seedUrl = config.getString("conf.SeedUrl");
+    public static String address = config.getString("conf.Host");
+    public static int port = config.getInt("conf.Port");
 }

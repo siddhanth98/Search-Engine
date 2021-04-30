@@ -41,6 +41,9 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:1.2.3"
     implementation "org.slf4j:slf4j-api:1.7.30"
 
+    implementation "org.java-websocket:Java-WebSocket:1.5.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.12.1"
+
     // Use JUnit test framework
     testImplementation 'junit:junit:4.13'
 }
