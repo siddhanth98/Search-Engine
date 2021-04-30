@@ -1,21 +1,17 @@
 package Vector.Space.Retrieval.System;
 
-import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 import Vector.Space.Retrieval.System.preprocessor.*;
-import Vector.Space.Retrieval.System.preprocessor.crawler.Crawler;
 import Vector.Space.Retrieval.System.query.QueryProcessor;
-import Vector.Space.Retrieval.System.query.Server;
+import Vector.Space.Retrieval.System.query.scorer.Scorer;
+import Vector.Space.Retrieval.System.query.scorer.TFIDFScorer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import static Vector.Space.Retrieval.System.Constants.*;
-import static Vector.Space.Retrieval.System.Constants.k;
 
 /**
  * This is the main class to run
@@ -55,15 +51,6 @@ public class App {
         displayAverageMetrics(rankedMapForAllQueries, 50);
         displayAverageMetrics(rankedMapForAllQueries, 100);
         displayAverageMetrics(rankedMapForAllQueries, 500);*/
-
-        /*Crawler crawler = new Crawler(crawlLimit);
-        QueryProcessor queryProcessor = new QueryProcessor(crawler.getIndexer());
-        Scanner sc = new Scanner(System.in);
-        List<String> queryTokens;
-
-        crawler.crawl("https://cs.uic.edu/");
-        queryTokens = queryProcessor.getTokens("CS master of science courses");
-        printRankedDocuments(queryProcessor.getRankedMapOfDocuments(queryTokens));*/
 
         try {
             new Server().start();

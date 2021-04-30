@@ -23,6 +23,7 @@ public class Constants {
 
     public static boolean stem = config.getBoolean("conf.Stem");
     public static boolean eliminateStopWords = config.getBoolean("conf.StopWordsElimination");
+    public static String scoring = config.getString("conf.scoring");
 
     static int k = config.getInt("conf.K");
 
@@ -30,4 +31,5 @@ public class Constants {
     public static String seedUrl = config.getString("conf.SeedUrl");
     public static String address = config.getString("conf.Host");
     public static int port = config.getInt("conf.Port");
+
 }

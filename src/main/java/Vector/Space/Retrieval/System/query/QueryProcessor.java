@@ -4,6 +4,8 @@ import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 
 import Vector.Space.Retrieval.System.preprocessor.IndexItem;
 import Vector.Space.Retrieval.System.preprocessor.WebDocument;
+import Vector.Space.Retrieval.System.query.scorer.Scorer;
+import Vector.Space.Retrieval.System.query.scorer.TFIDFScorer;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.util.ContextInitializer;
 
@@ -28,10 +30,12 @@ public class QueryProcessor {
     private static final Logger logger = LoggerFactory.getLogger(QueryProcessor.class);
     private final InvertedIndexer indexer;
     private final Tokenizer tokenizer;
+    private final Scorer scorer;
 
     public QueryProcessor(final InvertedIndexer indexer) {
         this.indexer = indexer;
         this.tokenizer = new Tokenizer();
+        this.scorer = getCurrentScorer(this.indexer);
 //        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
 
@@ -53,7 +57,8 @@ public class QueryProcessor {
     public Map<WebDocument, Double> getRankedMapOfDocuments(List<String> queryTokens) {
         Map<String, Map<String, IndexItem>> invertedIndex = this.indexer.getIndex();
         Map<WebDocument, Double> similarityMap = new HashMap<>();
-        Map<String, Integer> queryTermFrequencyMap = getTermFrequencyMap(queryTokens);
+        Scorer currentScorer = this.getScorer();
+        currentScorer.prepareQueryTermFrequencyMap(queryTokens);
 
         queryTokens.forEach(currentToken -> {
             if (invertedIndex.containsKey(currentToken)) {
@@ -61,8 +66,8 @@ public class QueryProcessor {
                     try {
                         WebDocument document = indexItem.getDocument();
                         double similarityValue =
-                                indexer.getWeight(currentToken, documentUrl) *
-                                        getWeight(queryTermFrequencyMap.get(currentToken), indexer.getInverseDocumentFrequency(currentToken));
+                                currentScorer.getDocumentScore(currentToken, documentUrl) *
+                                        currentScorer.getQueryScore(currentToken);
 
                         if (!similarityMap.containsKey(document)) similarityMap.put(document, 0.0);
                         similarityMap.put(document, similarityMap.get(document) + similarityValue);
@@ -111,6 +116,18 @@ public class QueryProcessor {
      */
     private static double getWeight(int termFrequency, double inverseDocumentFrequency) {
         return termFrequency * inverseDocumentFrequency;
+    }
+
+    /**
+     * Gets this query processor's scorer
+     * @return Scorer (TF-IDF, etc.) of this query processor
+     */
+    public Scorer getScorer() {
+        return this.scorer;
+    }
+
+    public Scorer getCurrentScorer(final InvertedIndexer indexer) {
+        return new TFIDFScorer(indexer);
     }
 
     /**

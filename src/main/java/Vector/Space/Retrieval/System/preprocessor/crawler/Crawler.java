@@ -36,6 +36,13 @@ public class Crawler {
 //        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
     }
 
+    public void init(String seedUrl) {
+        this.urlFrontier.add(seedUrl);
+        while(!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit)
+            crawl(this.dequeueUrl());
+        finishCrawl();
+    }
+
     /**
      * Fetches, parses the page and extracts the hyperlinks in the given document
      * <br>
@@ -49,6 +56,7 @@ public class Crawler {
             String redirectedUrl = getNormalized(document.baseUri());
             if (!(crawled(crawlUrl) || crawled(redirectedUrl))) {
                 /* Crawl this document */
+                logger.info(String.format("crawling url-%d %s", this.crawlCount, document.baseUri()));
                 Parser parser = new Parser(document);
                 parser.parse();
                 List<String> hyperlinks = parser.getLinks();
@@ -64,11 +72,10 @@ public class Crawler {
             }
         }
         catch(Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
-
-        if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
-        else finishCrawl();
+        /*if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
+        else finishCrawl();*/
     }
 
     /**
@@ -87,13 +94,13 @@ public class Crawler {
             if (normalizedLink.contains("uic.edu") && !collectedLinks.contains(normalizedLink) &&
                     !(normalizedLink.equals(originalUrl) || normalizedLink.equals(redirectedUrl))) {
                 if (isValid(normalizedLink)) {
-                    logger.info(String.format("adding hyperlink %s", normalizedLink));
+//                    logger.info(String.format("adding hyperlink %s", normalizedLink));
                     filteredLinks.add(normalizedLink);
                 }
                 collectedLinks.add(normalizedLink);
             }
         }
-        logger.info("\n\n");
+//        logger.info("\n\n");
         return filteredLinks;
     }
 
@@ -116,7 +123,6 @@ public class Crawler {
                         .validateTLSCertificates(false)
                         .followRedirects(true).execute();
 
-        logger.info(String.format("crawling url-%d %s", this.crawlCount, url));
         return response.parse();
     }
 

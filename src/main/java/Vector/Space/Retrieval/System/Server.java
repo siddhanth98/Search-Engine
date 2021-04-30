@@ -1,8 +1,8 @@
-package Vector.Space.Retrieval.System.query;
+package Vector.Space.Retrieval.System;
 
-import Vector.Space.Retrieval.System.Constants;
 import Vector.Space.Retrieval.System.preprocessor.WebDocument;
 import Vector.Space.Retrieval.System.preprocessor.crawler.Crawler;
+import Vector.Space.Retrieval.System.query.QueryProcessor;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -90,7 +90,6 @@ public class Server extends WebSocketServer {
 
     public Server() throws UnknownHostException {
         super(new InetSocketAddress(InetAddress.getByName(Constants.address), Constants.port));
-
         this.crawler = new Crawler(Constants.crawlLimit);
         this.queryProcessor = new QueryProcessor(this.crawler.getIndexer());
     }
@@ -103,7 +102,7 @@ public class Server extends WebSocketServer {
     public void onStart() {
         logger.info(String.format("server started at %s on port %d", this.getAddress(), this.getPort()));
         logger.info("Starting crawler");
-        this.crawler.crawl(Constants.seedUrl);
+        this.crawler.init(Constants.seedUrl);
     }
 
     /**
@@ -150,7 +149,8 @@ public class Server extends WebSocketServer {
      */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        logger.info(String.format("%s closed the connection", conn.getRemoteSocketAddress().getAddress().toString()));
+        if (conn != null)
+            logger.info(String.format("%s closed the connection", conn.getRemoteSocketAddress().getAddress().toString()));
     }
 
     /**
