@@ -18,6 +18,8 @@ public class Constants {
     public static String stopWordsFileName = config.getString("conf.StopWordsFileName");
     static String queriesFileName = config.getString("conf.QueriesFileName");
     static String relevanceFileName = config.getString("conf.RelevanceFileName");
+    public static String indexFile = config.getString("conf.IndexFile");
+    public static String docLengthsFile = config.getString("conf.DocumentLengthsFile");
 
     static int collectionSize = config.getInt("conf.CollectionSize");
 
@@ -25,11 +27,12 @@ public class Constants {
     public static boolean eliminateStopWords = config.getBoolean("conf.StopWordsElimination");
     public static String scoring = config.getString("conf.scoring");
 
-    static int k = config.getInt("conf.K");
+    public static int k = config.getInt("conf.K");
 
     public static int crawlLimit = config.getInt("conf.CrawlLimit");
     public static String seedUrl = config.getString("conf.SeedUrl");
     public static String address = config.getString("conf.Host");
     public static int port = config.getInt("conf.Port");
+    public static boolean indexing = config.getBoolean("conf.Indexing");
 
 }

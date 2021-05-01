@@ -1,5 +1,6 @@
 package Vector.Space.Retrieval.System.query;
 
+import Vector.Space.Retrieval.System.Constants;
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 
 import Vector.Space.Retrieval.System.preprocessor.IndexItem;
@@ -71,6 +72,7 @@ public class QueryProcessor {
 
                         if (!similarityMap.containsKey(document)) similarityMap.put(document, 0.0);
                         similarityMap.put(document, similarityMap.get(document) + similarityValue);
+
                     }
                     catch(Exception e) {
                         e.printStackTrace();
@@ -83,7 +85,7 @@ public class QueryProcessor {
         /* divide each computed similarity value by that document's euclidean normalized length */
         similarityMap.forEach((document, simValue) -> similarityMap.put(document, simValue / indexer.getDocumentLength(document.getUrl())));
 
-        return getRankedMap(similarityMap);
+        return getRankedMap(similarityMap, Constants.k);
     }
 
     /**
@@ -91,7 +93,7 @@ public class QueryProcessor {
      * @param queryDocumentSimilarityMap Unordered Map of document -> similarity values
      * @return map of document -> similarity value (ordered in non-increasing order of cosine similarity value)
      */
-    private static Map<WebDocument, Double> getRankedMap(Map<WebDocument, Double> queryDocumentSimilarityMap) {
+    private static Map<WebDocument, Double> getRankedMap(Map<WebDocument, Double> queryDocumentSimilarityMap, int k) {
         List<WebDocument> rankedList = new ArrayList<>();
         Map<WebDocument, Double> retrievedDocumentSimilarityMap = new LinkedHashMap<>();
 
@@ -99,11 +101,12 @@ public class QueryProcessor {
                 .stream()
                 .sorted((e1, e2) -> -1 * Double.compare(e1.getValue(), e2.getValue()))
                 .forEach(e -> rankedList.add(e.getKey()));
-        rankedList.forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
+        rankedList.subList(0, k).forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
+
         return retrievedDocumentSimilarityMap;
     }
 
-    public static void printRankedDocuments(Map<WebDocument, Double> rankedMap) {
+    public static void printRankedDocuments(Map<WebDocument, Double> rankedMap, int k) {
         rankedMap.forEach((key, value) ->
                 logger.info(String.format("Title = %s ; Similarity = %f%n", key.getTitle(), value)));
     }

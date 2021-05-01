@@ -17,8 +17,8 @@ import java.util.Map;
  */
 public class InvertedIndexer {
     private int collectionSize;
-    private final Map<String, Map<String, IndexItem>> index;
-    private final Map<String, Double> documentVector;
+    private Map<String, Map<String, IndexItem>> index;
+    private Map<String, Double> documentVector;
 
     private final Logger logger = LoggerFactory.getLogger(InvertedIndexer.class);
 
@@ -154,11 +154,27 @@ public class InvertedIndexer {
     }
 
     /**
+     * Store index object
+     * @param index Inverted index
+     */
+    public void setIndex(Map<String, Map<String, IndexItem>> index) {
+        this.index = index;
+    }
+
+    /**
      * Obtains the vector having euclidean normalized lengths of each document indexed
      * @return Map of document urls to euclidean normalized lengths
      */
     public Map<String, Double> getDocumentVector() {
         return this.documentVector;
+    }
+
+    /**
+     * Store the euclidean normalized document lengths vector
+     * @param documentVector Document lengths vector
+     */
+    public void setDocumentVector(Map<String, Double> documentVector) {
+        this.documentVector = documentVector;
     }
 
     /**

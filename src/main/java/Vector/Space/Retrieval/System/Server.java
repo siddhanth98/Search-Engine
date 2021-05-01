@@ -101,7 +101,19 @@ public class Server extends WebSocketServer {
     @Override
     public void onStart() {
         logger.info(String.format("server started at %s on port %d", this.getAddress(), this.getPort()));
-        logger.info("Starting crawler");
+
+        if (Constants.indexing) {
+            logger.info("Activating crawler and starting index");
+            this.crawler.init(Constants.seedUrl);
+        }
+        else {
+            logger.info("reading index and document lengths vector from disk");
+            this.crawler.readIndex();
+            this.crawler.readDocLengths();
+        }
+    }
+
+    public void initializeCrawl() {
         this.crawler.init(Constants.seedUrl);
     }
 
@@ -122,7 +134,7 @@ public class Server extends WebSocketServer {
      */
     @Override
     public void onMessage(WebSocket conn, String message) {
-        logger.info(String.format("received %s from %s", message, conn.getRemoteSocketAddress().getAddress().toString()));
+        logger.info("query request from client");
         ObjectMapper mapper = new ObjectMapper();
 
         try {

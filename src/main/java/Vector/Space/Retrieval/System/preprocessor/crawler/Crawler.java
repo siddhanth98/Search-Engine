@@ -1,6 +1,8 @@
 package Vector.Space.Retrieval.System.preprocessor.crawler;
 
+import Vector.Space.Retrieval.System.Constants;
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
+import Vector.Space.Retrieval.System.preprocessor.IndexItem;
 import Vector.Space.Retrieval.System.preprocessor.Parser;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -8,7 +10,7 @@ import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -71,11 +73,7 @@ public class Crawler {
                 this.crawlCount++;
             }
         }
-        catch(Exception e) {
-//            e.printStackTrace();
-        }
-        /*if (!this.urlFrontier.isEmpty() && this.crawlCount <= this.limit) crawl(this.dequeueUrl());
-        else finishCrawl();*/
+        catch(Exception e) {}
     }
 
     /**
@@ -176,8 +174,11 @@ public class Crawler {
      * Constructs the euclidean normalized document length table if all documents are crawled
      */
     public void finishCrawl() {
-        if (this.urlFrontier.isEmpty() || this.crawlCount >= this.limit)
+        if (this.urlFrontier.isEmpty() || this.crawlCount >= this.limit) {
             this.indexer.constructDocumentVectorTable();
+            this.writeObjectToFile(this.getIndexer().getIndex(), "index");
+            this.writeObjectToFile(this.getIndexer().getDocumentVector(), "docLengths");
+        }
     }
 
     /**
@@ -209,5 +210,48 @@ public class Crawler {
      */
     public InvertedIndexer getIndexer() {
         return this.indexer;
+    }
+
+    public void readIndex() {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(Constants.indexFile);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            Object obj = objectInputStream.readObject();
+            this.getIndexer().setIndex((HashMap)obj);
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void readDocLengths() {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(Constants.docLengthsFile);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            Object obj = objectInputStream.readObject();
+            this.getIndexer().setDocumentVector((HashMap)obj);
+            this.getIndexer().setCollectionSize(((HashMap)(obj)).size());
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Stores index/(euclidean-normalized-document-vector) to disk
+     * @param obj Inverted index / Document lengths vector
+     * @param fileName Name of the file on disk
+     */
+    public void writeObjectToFile(Object obj, String fileName) {
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(String.format("src/main/resources/%s.ser", fileName));
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(obj);
+            objectOutputStream.close();
+            fileOutputStream.close();
+        }
+        catch(IOException io) {
+            io.printStackTrace();
+        }
     }
 }
