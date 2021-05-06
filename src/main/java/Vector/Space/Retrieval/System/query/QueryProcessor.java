@@ -101,7 +101,7 @@ public class QueryProcessor {
                 .stream()
                 .sorted((e1, e2) -> -1 * Double.compare(e1.getValue(), e2.getValue()))
                 .forEach(e -> rankedList.add(e.getKey()));
-        rankedList.subList(0, k).forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
+        rankedList.subList(0, Integer.min(k, rankedList.size())).forEach(doc -> retrievedDocumentSimilarityMap.put(doc, queryDocumentSimilarityMap.get(doc)));
 
         return retrievedDocumentSimilarityMap;
     }

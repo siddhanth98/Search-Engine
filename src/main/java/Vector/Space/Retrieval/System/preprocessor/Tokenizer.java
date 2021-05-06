@@ -38,7 +38,8 @@ public class Tokenizer {
                 .stream()
                 .map(token -> token.toString().toLowerCase().replaceAll(punctuationFilter, ""))
                 .map(token -> token.toLowerCase().replaceAll(digitFilter, ""))
-                .filter(token -> token.length() > 0)
+                .map(String::strip)
+                .filter(token -> token.length() > 1)
                 .collect(Collectors.toList());
     }
 

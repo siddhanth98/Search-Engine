@@ -19,6 +19,7 @@ public class Crawler {
     private final Queue<String> urlFrontier;
     private final Set<String> visitedUrls;
     private final Set<String> enqueued;
+    private final Set<String> vocabulary;
     private final Map<String, String> redirectMap;
     private final InvertedIndexer indexer;
     private final int limit;
@@ -33,6 +34,7 @@ public class Crawler {
         this.urlFrontier = new LinkedList<>();
         this.visitedUrls = new HashSet<>();
         this.enqueued = new HashSet<>();
+        this.vocabulary = new HashSet<>();
         this.redirectMap = new HashMap<>();
 
 //        ((ch.qos.logback.classic.Logger)logger).setLevel(Level.OFF);
@@ -65,6 +67,7 @@ public class Crawler {
                 if (parser.canFollow()) enqueueUrls(getFiltered(hyperlinks, crawlUrl, redirectedUrl));
                 if (parser.canIndex()) {
                     this.indexer.addToIndex(parser.getTokens(), crawlUrl, parser.getTitle(), parser.getDescription());
+                    this.vocabulary.addAll(parser.getDictionary());
                     this.indexer.setCollectionSize(this.indexer.getCollectionSize() + 1); /* increment number of indexed documents */
                 }
 
@@ -178,6 +181,7 @@ public class Crawler {
             this.indexer.constructDocumentVectorTable();
             this.writeObjectToFile(this.getIndexer().getIndex(), "index");
             this.writeObjectToFile(this.getIndexer().getDocumentVector(), "docLengths");
+            this.writeObjectToFile(this.vocabulary, "vocabulary");
         }
     }
 

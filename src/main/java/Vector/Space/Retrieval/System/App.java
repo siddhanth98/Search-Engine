@@ -1,11 +1,9 @@
 package Vector.Space.Retrieval.System;
 
-import Vector.Space.Retrieval.System.preprocessor.*;
 import Vector.Space.Retrieval.System.query.QueryProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +19,7 @@ public class App {
         try {
             new Server().start();
         }
-        catch(UnknownHostException ex) {
+        catch(Exception ex) {
             ex.printStackTrace();
         }
     }

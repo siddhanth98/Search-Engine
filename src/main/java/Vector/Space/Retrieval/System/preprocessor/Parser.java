@@ -20,10 +20,12 @@ import java.util.*;
  */
 public class Parser {
     private final static Tokenizer tokenizer = new Tokenizer();
+    private final static StopWordProcessor stopWordProcessor = new StopWordProcessor();
     private final Document document;
     private String title;
     private String description;
     private final List<String> tokens;
+    private final Set<String> dictionary;
     private final List<String> links;
     private boolean follow, index;
 
@@ -34,6 +36,7 @@ public class Parser {
         this.title = "";
         this.description = "";
         this.tokens = new ArrayList<>();
+        this.dictionary = new HashSet<>();
         this.links = new ArrayList<>();
         this.follow = true;
         this.index = true;
@@ -62,7 +65,10 @@ public class Parser {
         else if (!headerTags.contains(node.tagName())) {
             /* Process the node's text here */
             String text = node.ownText().strip();
-            if (text.length() > 0) this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(text)));
+            if (text.length() > 0) {
+                this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(text)));
+                this.dictionary.addAll(new HashSet<>(stopWordProcessor.eliminateStopWordsFromList(tokenizer.tokenize(text))));
+            }
             for (Element child : node.children()) processNode(child);
         }
     }
@@ -126,6 +132,7 @@ public class Parser {
                     String[] words = content.split(",\\s*");
                     logger.info(String.format("Meta keywords - %s%n%n", Arrays.toString(words)));
                     this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(content)));
+                    this.dictionary.addAll(stopWordProcessor.eliminateStopWordsFromList(tokenizer.tokenize(content)));
                     break;
                 }
             }
@@ -144,6 +151,7 @@ public class Parser {
             logger.info(String.format("Link to - %s%nAnchor Text - %s%n%n", link, anchorText));
 
             this.tokens.addAll(tokenizer.preprocessTokens(tokenizer.tokenize(anchorText)));
+            this.dictionary.addAll(stopWordProcessor.eliminateStopWordsFromList(tokenizer.tokenize(anchorText)));
             this.links.add(link);
         }
     }
@@ -167,6 +175,14 @@ public class Parser {
      */
     public List<String> getTokens() {
         return this.tokens;
+    }
+
+    /**
+     * Get the unique tokens extracted from the document
+     * @return Vocabulary of this document
+     */
+    public Set<String> getDictionary() {
+        return this.dictionary;
     }
 
     /**
