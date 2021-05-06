@@ -55,7 +55,7 @@ public class QueryProcessor {
      * @param queryTokens List of all tokens for the given query
      * @return ordered map of document -> similarity value in non-increasing order of similarity values
      */
-    public Map<WebDocument, Double> getRankedMapOfDocuments(List<String> queryTokens) {
+    public Map<WebDocument, Double> getRankedMapOfDocuments(List<String> queryTokens, int k) {
         Map<String, Map<String, IndexItem>> invertedIndex = this.indexer.getIndex();
         Map<WebDocument, Double> similarityMap = new HashMap<>();
         Scorer currentScorer = this.getScorer();
@@ -85,7 +85,7 @@ public class QueryProcessor {
         /* divide each computed similarity value by that document's euclidean normalized length */
         similarityMap.forEach((document, simValue) -> similarityMap.put(document, simValue / indexer.getDocumentLength(document.getUrl())));
 
-        return getRankedMap(similarityMap, Constants.k);
+        return getRankedMap(similarityMap, k);
     }
 
     /**

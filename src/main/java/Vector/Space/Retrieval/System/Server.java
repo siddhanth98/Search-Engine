@@ -36,10 +36,12 @@ public class Server extends WebSocketServer {
      */
     static class Query {
         private final String query;
+        private final int k;
 
         @JsonCreator
-        public Query(@JsonProperty("query") String query) {
+        public Query(@JsonProperty("query") String query, @JsonProperty("k") int k) {
             this.query = query;
+            this.k = k;
         }
 
         /**
@@ -48,6 +50,14 @@ public class Server extends WebSocketServer {
          */
         public String getQuery() {
             return this.query;
+        }
+
+        /**
+         * Get the required document count
+         * @return Number of documents desired
+         */
+        public int getK() {
+            return this.k;
         }
     }
 
@@ -139,10 +149,13 @@ public class Server extends WebSocketServer {
 
         try {
             Query query = mapper.readValue(message, Query.class);
+            String queryString = query.getQuery();
+            int k = query.getK() > 0 ? query.getK() : Constants.k;
+
             WebDocuments response = new WebDocuments();
 
             Map<WebDocument, Double> searchResults =
-                    this.queryProcessor.getRankedMapOfDocuments(this.queryProcessor.getTokens(query.getQuery()));
+                    this.queryProcessor.getRankedMapOfDocuments(this.queryProcessor.getTokens(queryString), k);
             searchResults.keySet().forEach(response::addDocument);
 
             conn.send(mapper.writeValueAsString(response));
