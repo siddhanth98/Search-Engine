@@ -7,13 +7,10 @@ import Vector.Space.Retrieval.System.preprocessor.IndexItem;
 import Vector.Space.Retrieval.System.preprocessor.WebDocument;
 import Vector.Space.Retrieval.System.query.scorer.Scorer;
 import Vector.Space.Retrieval.System.query.scorer.TFIDFScorer;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.util.ContextInitializer;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import Vector.Space.Retrieval.System.DocumentUtils;
 import Vector.Space.Retrieval.System.preprocessor.Tokenizer;
@@ -82,8 +79,10 @@ public class QueryProcessor {
             else logger.info(String.format("Index does not have an entry for term %s%n", currentToken));
         });
 
-        /* divide each computed similarity value by that document's euclidean normalized length */
-        similarityMap.forEach((document, simValue) -> similarityMap.put(document, simValue / indexer.getDocumentLength(document.getUrl())));
+        if (Constants.normalize) {
+            /* divide each computed similarity value by that document's euclidean normalized length */
+            similarityMap.forEach((document, simValue) -> similarityMap.put(document, simValue / indexer.getDocumentLength(document.getUrl())));
+        }
 
         return getRankedMap(similarityMap, k);
     }

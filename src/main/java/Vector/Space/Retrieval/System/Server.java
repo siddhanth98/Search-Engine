@@ -117,9 +117,10 @@ public class Server extends WebSocketServer {
             this.crawler.init(Constants.seedUrl);
         }
         else {
-            logger.info("reading index and document lengths vector from disk");
+            logger.info("Reading index and document lengths vector from disk. Please wait...");
             this.crawler.readIndex();
             this.crawler.readDocLengths();
+            logger.info("ready");
         }
     }
 

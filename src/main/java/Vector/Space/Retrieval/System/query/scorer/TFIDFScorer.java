@@ -1,5 +1,6 @@
 package Vector.Space.Retrieval.System.query.scorer;
 
+import Vector.Space.Retrieval.System.Constants;
 import Vector.Space.Retrieval.System.indexer.InvertedIndexer;
 
 public class TFIDFScorer extends Scorer {
@@ -14,6 +15,8 @@ public class TFIDFScorer extends Scorer {
         try {
             int tf = this.indexer.getTermFrequency(term, documentUrl);
             double idf = this.indexer.getInverseDocumentFrequency(term);
+            if (Constants.weighting.equalsIgnoreCase("tf"))
+                return tf;
             return tf * idf;
         }
         catch(Exception ex) {
@@ -26,6 +29,8 @@ public class TFIDFScorer extends Scorer {
     public double getQueryScore(String term) {
         try {
             double idf = this.indexer.getInverseDocumentFrequency(term);
+            if (Constants.weighting.equalsIgnoreCase("tf"))
+                return getQueryTermFrequency(term);
             return getQueryTermFrequency(term) * idf;
         }
         catch(Exception ex) {

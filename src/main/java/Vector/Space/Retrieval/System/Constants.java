@@ -34,5 +34,6 @@ public class Constants {
     public static String address = config.getString("conf.Host");
     public static int port = config.getInt("conf.Port");
     public static boolean indexing = config.getBoolean("conf.Indexing");
-
+    public static boolean normalize = config.getBoolean("conf.Normalize");
+    public static String weighting = config.getString("conf.Weighting");
 }

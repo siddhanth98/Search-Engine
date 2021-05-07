@@ -11,6 +11,7 @@ public abstract class Scorer {
     public abstract double getQueryScore(String term);
 
     public void prepareQueryTermFrequencyMap(List<String> tokens) {
+        termFrequencyMap = new HashMap<>();
         tokens.forEach(token -> {
             if (!termFrequencyMap.containsKey(token)) termFrequencyMap.put(token, 0);
             termFrequencyMap.put(token, termFrequencyMap.get(token)+1);
